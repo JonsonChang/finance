@@ -12,7 +12,7 @@ UP_more = 0         #漲多
 UP_too_more = 0     #漲太多
 DOWN_more = 0       #跌多
 DOWN_too_more = 0   #跌太多
-
+ 
 f = open('table.csv', 'r')  
 raw_data = [] 
 
