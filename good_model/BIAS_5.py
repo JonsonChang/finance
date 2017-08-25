@@ -69,7 +69,7 @@ f_BIAS60 = BIAS(l_close, n=60)
 y = np.array(l_close) #np.array 才能直接運算
 nday = 3 #n天後的漲跌
 y[nday:] = y[nday:] - y[:-nday]  
-x = np.stack(zip(f_BIAS5)) #todo 需要多個feature
+x = np.stack(zip(f_BIAS5))
 
 
 model = LinearRegression()
