@@ -67,21 +67,22 @@ f_BIAS60 = BIAS(l_close, n=60)
 
 
 y = np.array(l_close) #np.array 才能直接運算
-nday = 3 #n天後的漲跌
-y[nday:] = y[nday:] - y[:-nday]  
+nday = 10 #n天後的漲跌
+y[:-nday] = y[nday:] - y[:-nday]   
 x = np.stack(zip(f_BIAS5)) #todo 需要多個feature
 
 
 model = LinearRegression()
-model.fit(x[60:x.size-100],y[60:x.size-100])
-y1 = model.predict(x[x.size-100:])
-score = model.score(x[x.size-100:],y[x.size-100:])
+tmp_size = x.size-100-nday
+model.fit(x[60:tmp_size],y[60:tmp_size])
+y1 = model.predict(x[tmp_size:])
+score = model.score(x[tmp_size:],y[tmp_size:])
 print(score)
 
 
 #畫圖
 from sklearn.cross_validation import cross_val_predict
-tmp_size = x.size-100
+
 x= x[60:tmp_size]
 y= y[60:tmp_size]
 predicted = cross_val_predict(model,x,y, cv=10)
