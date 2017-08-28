@@ -53,14 +53,10 @@ class stock:
             high_n.append(max(self.high[start:end]))
             low_n.append(min(self.low[start:end]))
 
-        
         h = np.array(high_n)
         l = np.array(low_n)
         c = np.array(self.close)
         result = ((c - l) / (h - l)) * 100
-       
-        print(((c[2457] - l[2457]) / (h[2457] - l[2457])) * 100)
-
         return (result)
 
     def feature_K(self, n=9):
@@ -86,6 +82,6 @@ class stock:
         return D
 
 
-a = stock("price_data.csv")
+#a = stock("price_data.csv")
 #b = a.feature_K()
-RSV = a.feature_RSV()
+#rsv = a.feature_RSV()
