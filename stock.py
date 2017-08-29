@@ -25,7 +25,27 @@ class stock:
             self.low.append(tmp_low)
             self.close.append(tmp_close)
             #f_UpDown.append(tmp_close - tmp_open)
-
+            
+    def feature_High(self, n=5):
+        high_n = []
+        for i in range(0, len(self.high)):
+            start = i - n + 1
+            end = i + 1
+            if(start < 0):
+                start = 0
+            high_n.append(max(self.high[start:end]))
+        return (high_n)
+        
+    def feature_Low(self, n=5):
+        low_n = []
+        for i in range(0, len(self.low)):
+            start = i - n + 1
+            end = i + 1
+            if(start < 0):
+                start = 0
+            low_n.append(min(self.low[start:end]))
+        return (low_n)        
+            
     def feature_MA(self, n=5):  # 移動平均線
         ret = np.cumsum(self.close, dtype=float)
         ret[n:] = ret[n:] - ret[:-n]
@@ -83,5 +103,8 @@ class stock:
 
 
 #a = stock("price_data.csv")
-#b = a.feature_K()
-#rsv = a.feature_RSV()
+#b = a.feature_High(50)
+#c = a.feature_D()
+#plt.plot(b)
+#plt.plot(c)
+
