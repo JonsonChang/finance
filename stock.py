@@ -102,7 +102,7 @@ class stock:
         return D
 
 
-#a = stock("price_data.csv")
+a = stock("price_data.csv")
 #b = a.feature_High(50)
 #c = a.feature_D()
 #plt.plot(b)
