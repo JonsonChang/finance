@@ -1,31 +1,40 @@
 # -*- coding: utf-8 -*-
 import numpy as np
+from datetime import datetime
+import matplotlib.dates as mdates
 
 
 class stock:
+
     def __init__(self, filename):
+        def datefunc(x): return mdates.date2num(
+            datetime.strptime(x.decode('ascii'), '%Y/%m/%d'))
         self.raw = np.genfromtxt(
             filename,
             delimiter=',',
-            skip_header=1)
+            skip_header=1,
+            converters={0: datefunc})
         self.raw = self.raw[::-1]  # 反向
 
+        self.date = []
         self.opened = []
         self.high = []
         self.low = []
         self.close = []
 
         for index, data in enumerate(self.raw):
+            tmp_date = data[0]
             tmp_open = data[1]
             tmp_high = data[2]
             tmp_low = data[3]
             tmp_close = data[4]
+            self.date.append(tmp_date)
             self.opened.append(tmp_open)
             self.high.append(tmp_high)
             self.low.append(tmp_low)
             self.close.append(tmp_close)
             #f_UpDown.append(tmp_close - tmp_open)
-            
+
     def feature_High(self, n=5):
         high_n = []
         for i in range(0, len(self.high)):
@@ -35,7 +44,7 @@ class stock:
                 start = 0
             high_n.append(max(self.high[start:end]))
         return (high_n)
-        
+
     def feature_Low(self, n=5):
         low_n = []
         for i in range(0, len(self.low)):
@@ -44,8 +53,8 @@ class stock:
             if(start < 0):
                 start = 0
             low_n.append(min(self.low[start:end]))
-        return (low_n)        
-            
+        return (low_n)
+
     def feature_MA(self, n=5):  # 移動平均線
         ret = np.cumsum(self.close, dtype=float)
         ret[n:] = ret[n:] - ret[:-n]
@@ -102,9 +111,8 @@ class stock:
         return D
 
 
-a = stock("price_data.csv")
-#b = a.feature_High(50)
-#c = a.feature_D()
-#plt.plot(b)
-#plt.plot(c)
+import matplotlib.pyplot as plt
 
+#plt.plot(d[50:], a.close[50:])
+#plt.plot(d[50:], c[50:])
+#plt.show()
