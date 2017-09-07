@@ -6,7 +6,6 @@ import sys
 import matplotlib.pyplot as plt
 import numpy as np
 from stock import stock
-import matplotlib.pyplot as plt
 
 # 參數設定
 nday = 20
@@ -40,14 +39,24 @@ plt.show()
 # 回測
 
 
-def cross_over(today, yesterday, value):
+def cross_over(line1, line2, index):
+    if (index < 1):
+        return False
+    today = line1[index]
+    yesterday = line1[index - 1]
+    value = line2[index]
     if (today > value and yesterday <= value):
         return True
     else:
         return False
 
 
-def cross_under(today, yesterday, value):
+def cross_under(line1, line2, index):
+    if (index < 1):
+        return False
+    today = line1[index]
+    yesterday = line1[index - 1]
+    value = line2[index]
     if (today < value and yesterday >= value):
         return True
     else:
@@ -68,19 +77,19 @@ list_profit_date = []
 list_trade = []
 list_trade_date = []
 
-
+plt.subplot(211)
 for index, data in enumerate(list_close):
     if(index <= nday):
         continue
     if(marketposition == 0):
-        if(cross_over(list_ma5[index], list_ma5[index - 1], list_ma20[index])):
+        if(cross_over(list_ma5, list_ma20, index)):
             marketposition = 1
             cost = data
             list_trade = [data]
             list_trade_date = [list_date[index]]
 
     if(marketposition != 0):
-        if(cross_under(list_ma5[index], list_ma5[index - 1], list_ma20[index])):
+        if(cross_under(list_ma5, list_ma20, index)):
             marketposition = 0
             profit = data - cost
             list_profit.append(profit)
@@ -88,11 +97,12 @@ for index, data in enumerate(list_close):
             list_trade.append(data)
             list_trade_date.append(list_date[index])
 
-            plt.plot(list_trade_date, list_trade, "r")
+            plt.plot_date(list_trade_date, list_trade, "r")
 
-plt.plot(list_date, list_close, lw=1)
-plt.plot(list_date, list_ma20, "--")
-plt.plot(list_date, list_ma5, "--")
-plt.show()
-plt.plot(np.cumsum(list_profit))
+
+plt.plot_date(list_date, list_close, "-", lw=1)
+plt.plot_date(list_date, list_ma20, "--")
+plt.plot_date(list_date, list_ma5, "--")
+plt.subplot(212)
+plt.plot_date(list_profit_date, np.cumsum(list_profit), "-")
 plt.show()

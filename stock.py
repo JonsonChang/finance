@@ -110,9 +110,9 @@ class stock:
             D.append(current_D)
         return D
 
-
-import matplotlib.pyplot as plt
-
-#plt.plot(d[50:], a.close[50:])
-#plt.plot(d[50:], c[50:])
-#plt.show()
+if __name__ == '__main__':
+    import matplotlib.pyplot as plt
+    
+    #plt.plot(d[50:], a.close[50:])
+    #plt.plot(d[50:], c[50:])
+    #plt.show()
