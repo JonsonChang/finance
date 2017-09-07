@@ -8,14 +8,14 @@ import numpy as np
 from stock import stock
 
 # 參數設定
-nday = 20
-BIAS_std1 = 0.08  # 停損用
-BIAS_std1 = 0.15  # 進場用
+nday = 40
+BIAS_std1 = 0.15
 BIAS_std2 = 1
 
 
 s = stock("price_data.csv")
 list_ma = s.feature_MA(nday)
+list_ma_slope = np.array(s.feature_MA_slope(nday))  # 均線斜率
 list_BIAS = s.feature_BIAS(nday)
 
 BIAS_mean = list_BIAS[nday:].mean() / 100
@@ -23,17 +23,22 @@ BIAS_std = list_BIAS[nday:].std() / 100
 
 list_line1 = (BIAS_mean + BIAS_std1 * BIAS_std) * list_ma + list_ma
 list_line2 = (BIAS_mean - BIAS_std1 * BIAS_std) * list_ma + list_ma
+
 list_line3 = (BIAS_mean + BIAS_std2 * BIAS_std) * list_ma + list_ma
 list_line4 = (BIAS_mean - BIAS_std2 * BIAS_std) * list_ma + list_ma
 
 
-plt.plot(list_ma[nday:])
-plt.plot(s.close[nday:])
-plt.plot(list_line1[nday:], "--")
-plt.plot(list_line2[nday:], "--")
-plt.plot(list_line3[nday:], "--")
-plt.plot(list_line4[nday:], "--")
-plt.show()
+# 均線向下時，放寬
+ma_slope_down = list_ma_slope[nday:].mean(
+) - BIAS_std1 * list_ma_slope[nday:].std()
+
+# plt.plot(list_ma[nday:])
+# plt.plot(s.close[nday:])
+#plt.plot(list_line1[nday:], "--")
+#plt.plot(list_line2[nday:], "--")
+#plt.plot(list_line3[nday:], "--")
+#plt.plot(list_line4[nday:], "--")
+# plt.show()
 
 ###############################################
 # 回測
@@ -76,33 +81,44 @@ list_profit_date = []
 
 list_trade = []
 list_trade_date = []
+list_trade_out = []
+list_trade_out_date = []
 
 plt.subplot(211)
 for index, data in enumerate(list_close):
     if(index <= nday):
         continue
-    if(marketposition == 0):
-        if(cross_over(list_ma5, list_ma20, index)):
+    if(marketposition == 0 and list_ma[index] > list_ma[index - 1]):  # 均線向上
+        if(cross_over(list_close, list_line1, index)):
             marketposition = 1
             cost = data
-            list_trade = [data]
-            list_trade_date = [list_date[index]]
-
-    if(marketposition != 0):
-        if(cross_under(list_ma5, list_ma20, index)):
-            marketposition = 0
-            profit = data - cost
-            list_profit.append(profit)
-            list_profit_date.append(list_date[index])
             list_trade.append(data)
             list_trade_date.append(list_date[index])
 
-            plt.plot_date(list_trade_date, list_trade, "r")
+    if(marketposition != 0):  # 停損 or 停利
+        if(list_ma_slope[index] < ma_slope_down):  # 均線向下
+            marketposition = 0
+        if(cross_under(list_close, list_line3, index)):  # 乖離率過高
+            marketposition = 0
+        if(cross_under(list_close, list_line2, index)):  # 向下突破
+            marketposition = 0
+        if(marketposition == 0):  # 確定出場
+            profit = data - cost
+            list_profit.append(profit)
+            list_profit_date.append(list_date[index])
+            list_trade_out.append(data)
+            list_trade_out_date.append(list_date[index])
 
+print("總獲利", np.array(list_profit).sum())
+print("MA=", nday)
 
-plt.plot_date(list_date, list_close, "-", lw=1)
-plt.plot_date(list_date, list_ma20, "--")
-plt.plot_date(list_date, list_ma5, "--")
+plt.plot_date(list_date, list_ma, "-", lw=1)
+plt.plot_date(list_date, list_line1, "--")
+plt.plot_date(list_date, list_line2, "--")
+plt.plot_date(list_date, list_line3, "--")
+plt.plot_date(list_date, list_close, "-")
+plt.plot_date(list_trade_date, list_trade, "r^")
+plt.plot_date(list_trade_out_date, list_trade_out, "gv")
 plt.subplot(212)
 plt.plot_date(list_profit_date, np.cumsum(list_profit), "-")
 plt.show()

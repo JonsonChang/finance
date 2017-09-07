@@ -61,6 +61,11 @@ class stock:
         # return ret[n - 1:] / n
         return ret[:] / n
 
+    def feature_MA_slope(self,n = 10):
+        ret = self.feature_MA(n)
+        ret[1:] = ret[1:] - ret[:-1]
+        return ret[:]
+    
     def feature_BIAS(self, n=5):  # 乖離率
         ret = np.cumsum(self.close, dtype=float)
         ret[n:] = ret[n:] - ret[:-n]
@@ -112,7 +117,9 @@ class stock:
 
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
-    
+    s = stock("price_data.csv")
+    a = s.feature_MA_slope(5)
+    b = s.feature_MA(5)
     #plt.plot(d[50:], a.close[50:])
     #plt.plot(d[50:], c[50:])
     #plt.show()

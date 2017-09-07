@@ -25,7 +25,7 @@ def normfun(x, mu, sigma):
 
 
 def normfun_ex(data):
-    print("normfun_ex", data.mean() , data.std() )
+    print("normfun_ex", data.mean(), data.std())
     x = np.arange(min(data), max(data), ((max(data) - min(data)) / 100))
     return x, normfun(x, data.mean(), data.std())
 
@@ -89,18 +89,17 @@ def test_up_down():
         print(nday, up.mean() * 100, down.mean() * 100)
 
 
-def test_ma_slope():
-    # 計算ma 斜率的分佈 (有)
-    for nday in range(15, 16):
-        data = np.array(s.feature_MA(nday))
-        data = data - np.roll(data, 1)
-        data = data[nday:len(data) - nday - 1]
+def test_ma_slope(nday=10):
+    s = stock("price_data.csv")
+    data = np.array(s.feature_MA_slope(nday))
+    data = data[nday:len(data) - nday - 1]
 
-        n, bins, patches = plt.hist(
-            data, num_bins, normed=1, facecolor='red', alpha=0.5)
-        x, y = normfun_ex(data)
-        plt.plot(x, y, color='g', linewidth=1)
-        print(nday, data.mean(), data.std())
+    n, bins, patches = plt.hist(
+        data, 50, normed=1, facecolor='red', alpha=0.5)
+    x, y = normfun_ex(data)
+    print(nday, data.mean(), data.std())
+    plt.plot(x, y, color='g', linewidth=1)
+    plt.show()
 
 
 def test_oneday():
@@ -178,7 +177,8 @@ def test_K():
 
 
 if __name__ == '__main__':
-    #test_oneday()
-    #test_profit()
-    #test_BIAS()
-    test_K()
+    # test_oneday()
+    # test_profit()
+    # test_BIAS()
+    test_ma_slope(40)
+    # test_K()
