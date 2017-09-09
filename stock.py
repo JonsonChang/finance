@@ -14,7 +14,9 @@ class stock:
             delimiter=',',
             skip_header=1,
             converters={0: datefunc})
-        self.raw = self.raw[::-1]  # 反向
+        
+        if(self.raw[0][0]>self.raw[0][1]):
+            self.raw = self.raw[::-1]  # 反向
 
         self.date = []
         self.opened = []
@@ -28,6 +30,10 @@ class stock:
             tmp_high = data[2]
             tmp_low = data[3]
             tmp_close = data[4]
+            
+            if np.isnan(tmp_close):
+                continue
+            
             self.date.append(tmp_date)
             self.opened.append(tmp_open)
             self.high.append(tmp_high)
@@ -70,8 +76,8 @@ class stock:
         ret = np.cumsum(self.close, dtype=float)
         ret[n:] = ret[n:] - ret[:-n]
         ret = ret / n  # average
-        ret = (self.close / ret)
-        ret = (1 - ret) * 100
+        ret = ((self.close - ret) / ret)
+        
         return ret[:]
 
     def feature_RSV(self, n=9):
