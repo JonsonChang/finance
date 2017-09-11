@@ -81,9 +81,11 @@ class GranvilleRules:
                     # todo: 增加扣抵值的預估，基金的操作需要。 當沖可能不需要
                     if(self.cross_over(self.list_close, self.list_line1, index)):
                         marketposition = 1
-                if(self.list_ma[index] > self.list_ma[index - 1]):  # 均線向下，乖離過大，
+                        print("in: 方向往上")
+                elif(self.list_ma[index] > self.list_ma[index - 1]):  # 均線向下，乖離過大，
                     if(self.cross_over(self.list_close, self.list_line4, index)):
-                        marketposition = 0  # (逆勢，不使用)
+                        pass
+                        # marketposition = 0  # (逆勢，不使用)
                 if(marketposition == 1):  # 確定入場
                     cost = data
                     self.list_trade.append(data)
@@ -92,10 +94,25 @@ class GranvilleRules:
             if(marketposition != 0):  # 停損 or 停利
                 if(self.list_ma_slope[index] < self.ma_slope_down):  # 均線向下
                     marketposition = 0
-                if(self.cross_under(self.list_close, self.list_line3, index)):  # 乖離率過高
+                    print(
+                        "out: 均線向下 ",
+                        self.list_ma_slope[index],
+                        "<",
+                        self.ma_slope_down)
+                elif(self.cross_under(self.list_close, self.list_line3, index)):  # 乖離率過高
                     marketposition = 0
-                if(self.cross_under(self.list_close, self.list_line2, index)):  # 向下突破
+                    print(
+                        "out: 乖離率過高 ",
+                        self.list_close[index],
+                        "<",
+                        self.list_line3[index])
+                elif(self.cross_under(self.list_close, self.list_line2, index)):  # 向下突破
                     marketposition = 0
+                    print(
+                        "out: 向下突破 ",
+                        self.list_close[index],
+                        "<",
+                        self.list_line2[index])
                 if(marketposition == 0):  # 確定出場
                     profit = data - cost
                     self.list_profit.append(profit)
@@ -124,7 +141,8 @@ class GranvilleRules:
                         marketposition = 1
                 if(self.list_ma[index] > self.list_ma[index - 1]):  # 均線向下，乖離過大，
                     if(self.cross_over(self.list_close, self.list_line4, index)):
-                        marketposition = 0  # (逆勢，不使用)
+                        pass
+                        # marketposition = 0  # (逆勢，不使用)
                 if(marketposition == 1):  # 確定入場
                     cost = data
                     self.list_trade.append(data)
@@ -151,6 +169,7 @@ class GranvilleRules:
         Bias2 = self.BIAS_mean - self.BIAS_std1 * self.BIAS_std
         Bias3 = self.BIAS_mean + self.BIAS_std2 * self.BIAS_std
         Bias4 = self.BIAS_mean - self.BIAS_std2 * self.BIAS_std
+        print("**** 參數輸出 ****", Bias1)
         print("Bias1=", Bias1)
         print("Bias2=", Bias2)
         print("Bias3=", Bias3)
@@ -178,6 +197,8 @@ class GranvilleRules:
         plt.show()
 
     def plot_profit(self):
+        profit = np.sum(self.list_profit)
+        print("*** 次數=", len(self.list_profit), " 獲利=", profit)
         plt.plot_date(self.list_profit_date, np.cumsum(self.list_profit), "-")
         plt.show()
 
@@ -205,12 +226,13 @@ if __name__ == '__main__':
     # 1. 用大範圍找出最佳參數
     test_range = np.array((np.arange(0.7, 1.3, 0.05)))
     test_result = np.arange(0.7 - 0.05, 1.3, 0.05)
-    for nday in range(20, 70):
+    for nday in range(930, 80, 1):
         tmp = []
         tmp.append(nday)
         for std in test_range:
+            print("new start n=", nday, " std=", std)
             g = GranvilleRules(
-                "DJIA.csv",
+                "聯博-全球高收益債券基金A2.csv",
                 nday=nday,
                 BIAS_std1=0.15,
                 BIAS_std2=std)
@@ -221,12 +243,13 @@ if __name__ == '__main__':
         test_result = np.vstack([test_result, tmp])
 # 2. 使用traning 數據, 將參數印出。
     g = GranvilleRules(
-        "DJIA.csv",
-        nday=20,
+        "聯博-全球高收益債券基金A2.csv",
+        nday=67,
         BIAS_std1=0.15,
-        BIAS_std2=1)
+        BIAS_std2=0.95)
     profit = g.get_profit_up()
     g.plot()
+    g.plot_profit()
     nday, Bias1, Bias2, Bias3, Bias4, ma_slope_down, ma_slope_up = g.print_param()
 
 # 3. 將資料帶入 測試數據

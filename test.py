@@ -142,7 +142,7 @@ def test_oneday():
 def test_BIAS():
     #計算乖離率, 有常態分佈
     nday = 20
-    s = stock("price_data.csv")
+    s = stock("聯博-全球高收益債券基金A2.csv")
     c = np.array(s.close)
     o = np.array(s.opened)
     x = s.feature_BIAS(nday)
@@ -179,6 +179,6 @@ def test_K():
 if __name__ == '__main__':
     # test_oneday()
     # test_profit()
-    # test_BIAS()
-    test_ma_slope(40)
+    test_BIAS()
+    #test_ma_slope(40)
     # test_K()

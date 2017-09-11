@@ -14,8 +14,8 @@ class stock:
             delimiter=',',
             skip_header=1,
             converters={0: datefunc})
-        
-        if(self.raw[0][0]>self.raw[0][1]):
+
+        if(self.raw[0][0] > self.raw[0][1]):
             self.raw = self.raw[::-1]  # 反向
 
         self.date = []
@@ -30,10 +30,10 @@ class stock:
             tmp_high = data[2]
             tmp_low = data[3]
             tmp_close = data[4]
-            
+
             if np.isnan(tmp_close):
                 continue
-            
+
             self.date.append(tmp_date)
             self.opened.append(tmp_open)
             self.high.append(tmp_high)
@@ -67,17 +67,17 @@ class stock:
         # return ret[n - 1:] / n
         return ret[:] / n
 
-    def feature_MA_slope(self,n = 10):
+    def feature_MA_slope(self, n=10):
         ret = self.feature_MA(n)
         ret[1:] = ret[1:] - ret[:-1]
         return ret[:]
-    
+
     def feature_BIAS(self, n=5):  # 乖離率
         ret = np.cumsum(self.close, dtype=float)
         ret[n:] = ret[n:] - ret[:-n]
         ret = ret / n  # average
         ret = ((self.close - ret) / ret)
-        
+
         return ret[:]
 
     def feature_RSV(self, n=9):
@@ -121,6 +121,7 @@ class stock:
             D.append(current_D)
         return D
 
+
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
     s = stock("price_data.csv")
@@ -128,4 +129,4 @@ if __name__ == '__main__':
     b = s.feature_MA(5)
     #plt.plot(d[50:], a.close[50:])
     #plt.plot(d[50:], c[50:])
-    #plt.show()
+    # plt.show()
