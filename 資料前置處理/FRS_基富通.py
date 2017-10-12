@@ -12,7 +12,7 @@ def excel_date(date1):
     return float(delta.days) + (float(delta.seconds) / 86400)
 
 
-with open('A2.txt', 'r') as f:
+with open('AA.txt', 'r') as f:
     array = json.load(f)
 
 out = np.array([0, 0])
@@ -25,4 +25,4 @@ for row in array:
         out = np.vstack([out, l])
 
 
-np.savetxt("a.csv", out, delimiter=",")
+np.savetxt("GG.csv", out, delimiter=",")
