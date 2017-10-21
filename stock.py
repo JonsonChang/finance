@@ -68,7 +68,7 @@ class stock:
         # return ret[n - 1:] / n
         return ret[:] / n
 
-    def feature_MA_slope(self, n=10):
+    def feature_MA_slope(self, n=10): # 均線協率
         ret = self.feature_MA(n)
         ret[1:] = ret[1:] - ret[:-1]
         return ret[:]

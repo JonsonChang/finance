@@ -29,3 +29,8 @@ def num2time( n ):
     d = mdates.num2date(n)
     current = d.hour*60+d.minute
     return current
+    
+def list_percentage(arr, p): #回傳 list 中排序的百分比位罝的值。ex: 0.5 就是中位數 
+    ll = np.sort(arr)
+    l = len(ll)
+    return (ll[int(l*p)])
