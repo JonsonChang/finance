@@ -2,6 +2,9 @@
 import numpy as np
 from datetime import datetime
 import matplotlib.dates as mdates
+import twstock
+from urllib.request import urlopen
+from lxml import etree
 #from matplotlib.finance import candlestick_ohlc
 
 
@@ -10,6 +13,7 @@ class stock:
     def __init__(self, filename):
         def datefunc(x): return mdates.date2num(
             datetime.strptime(x.decode('ascii'), '%Y/%m/%d'))
+        self.filename = filename
         self.raw = np.genfromtxt(
             filename,
             delimiter=',',
@@ -41,7 +45,78 @@ class stock:
             self.low.append(tmp_low)
             self.close.append(tmp_close)
 
+    def complete_data_yahoo(self,sid):
+        url = "https://tw.stock.yahoo.com/q/q?s={0}".format(sid)
+        #html = get_html(url)
+        html =  urlopen(url).read()
+        page = etree.HTML(html)
+        hrefs = page.xpath(u"//td[contains(@align, 'center')]")
+        t = hrefs[1].text
+        o = hrefs[8].text
+        h = hrefs[9].text
+        l = hrefs[10].text
+        c = hrefs[2].xpath(u"//b")[0].text 
+        
+        if t != '13:30':
+            print("未收盤")
+            return (datetime(2000,1,1),o,h,l,c)
+        
+        # for debug 找出相對應的位置
+        #index = 0
+        #for h in hrefs:
+        #    print("\r\n {0}".format(index))
+        #    print(etree.tostring(h, encoding='utf8') )
+        #    index = index +1
+        
+        date_element = page.xpath(u"//td[contains(@width, '160')]/font")    
+        date_str = date_element[0].text
+        date_str.index('資料日期:')
+        date_str = date_str[7:]
+        date_split = date_str.split("/")
+        y = int(date_split[0])+1911
+        m = int(date_split[1])
+        d = int(date_split[2])
+        
+        dd = datetime(y,m,d)
+        return(dd,o,h,l,c)
+        
+    def complate_data(self, sid):
+        ret = False
+        last_date = self.date[-1]
+        stock = twstock.Stock(sid)
+        
+        col_num = len(self.raw[0]) # csv 檔的 column 數
+        append_str = ""
+        for index in range(0,col_num -5):
+            append_str = append_str + ",0"
+        
+        for index in range(-10,0):
+            d = stock.date[index]
+            o = stock.open[index]
+            h = stock.high[index]
+            l = stock.low[index]
+            c = stock.close[index]
+            if(mdates.date2num(d) > last_date):
+                str = "{0},{1},{2},{3},{4}".format(d.strftime('%Y/%m/%d'),o,h,l,c )
+                print("資料回補：" + str)
+                f = open(self.filename, 'a+')
+                f.write(str+append_str+"\n")
+                f.close()
+                ret = True
 
+        #yahoo 資料確認
+        d,o,h,l,c = self.complete_data_yahoo(sid)
+        #print(d,o,h,l,c)
+        if(mdates.date2num(d) > mdates.date2num(stock.date[-1]) and mdates.date2num(d) > last_date ):
+            str = "{0},{1},{2},{3},{4}".format(d.strftime('%Y/%m/%d'),o,h,l,c )
+            print("資料回補 yahoo：" + str)
+            f = open(self.filename, 'a+')
+            f.write(str+append_str+"\n")
+            f.close()
+            ret = True
+        # 有更新資料時，回傳True
+        return ret
+        
     def feature_High(self, n=5):
         high_n = []
         for i in range(0, len(self.high)):

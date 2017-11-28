@@ -34,11 +34,11 @@ class GranvilleRules:
                            self.BIAS_std) * self.list_ma + self.list_ma
 
         # 均線向下時，放寬
-        self.ma_slope_down = self.list_ma_slope[nday:].mean(
-        ) - self.BIAS_std1 * self.list_ma_slope[nday:].std()
+        self.ma_slope_down = self.list_ma_slope[nday:].mean() - self.BIAS_std1 * self.list_ma_slope[nday:].std()
+        if self.ma_slope_down > 0:
+            self.ma_slope_down = 0
         # 均線向上時，放寬
-        self.ma_slope_up = self.list_ma_slope[nday:].mean(
-        ) + self.BIAS_std1 * self.list_ma_slope[nday:].std()
+        self.ma_slope_up = self.list_ma_slope[nday:].mean() + self.BIAS_std1 * self.list_ma_slope[nday:].std()
 
     def cross_over(self, line1, line2, index):
         if (index < 1):
@@ -92,10 +92,11 @@ class GranvilleRules:
                     self.list_trade_date.append(self.list_date[index])
 
             if(marketposition != 0):  # 停損 or 停利
-                if(self.list_ma_slope[index] < self.ma_slope_down):  # 均線向下
+                #連續三天，均線向下
+                if(self.list_ma_slope[index] < self.ma_slope_down and self.list_ma_slope[index-1] < self.ma_slope_down and self.list_ma_slope[index-2] < self.ma_slope_down):  
                     marketposition = 0
                     print(
-                        "out: 均線向下 ",
+                        "out: 連三天均線向下 ",
                         self.list_ma_slope[index],
                         "<",
                         self.ma_slope_down)
@@ -113,48 +114,12 @@ class GranvilleRules:
                         self.list_close[index],
                         "<",
                         self.list_line2[index])
-                if(marketposition == 0):  # 確定出場
-                    profit = data - cost
-                    self.list_profit.append(profit)
-                    self.list_profit_date.append(self.list_date[index])
-                    self.list_trade_out.append(data)
-                    self.list_trade_out_date.append(self.list_date[index])
-        return (np.array(self.list_profit).sum())
-
-    def get_profit_down(self):  # 只做空單
-        marketposition = 0
-        self.list_close = self.s.close
-        self.list_date = self.s.date
-        self.list_profit = []
-        self.list_profit_date = []
-
-        self.list_trade = []
-        self.list_trade_date = []
-        self.list_trade_out = []
-        self.list_trade_out_date = []
-        for index, data in enumerate(self.list_close):
-            if(index <= self.nday):
-                continue
-            if(marketposition == 0):
-                if(self.list_ma[index] < self.list_ma[index - 1]):  # 均線向上
-                    if(self.cross_under(self.list_close, self.list_line2, index)):
-                        marketposition = 1
-                if(self.list_ma[index] > self.list_ma[index - 1]):  # 均線向下，乖離過大，
-                    if(self.cross_over(self.list_close, self.list_line4, index)):
-                        pass
-                        # marketposition = 0  # (逆勢，不使用)
-                if(marketposition == 1):  # 確定入場
-                    cost = data
-                    self.list_trade.append(data)
-                    self.list_trade_date.append(self.list_date[index])
-
-            if(marketposition != 0):  # 停損 or 停利
-                if(self.list_ma_slope[index] > self.ma_slope_up):  # 均線向下
+                elif(self.list_date[-2] == self.list_date[index]):
                     marketposition = 0
-                if(self.cross_over(self.list_close, self.list_line4, index)):  # 乖離率過高
-                    marketposition = 0
-                if(self.cross_over(self.list_close, self.list_line1, index)):  # 向下突破
-                    marketposition = 0
+                    print("out: 最後一天，強制離場 ")
+                else:
+                    pass
+#                    print("留單", self.list_date[-2] , self.list_date[index])
                 if(marketposition == 0):  # 確定出場
                     profit = data - cost
                     self.list_profit.append(profit)
@@ -192,8 +157,8 @@ class GranvilleRules:
         plt.plot_date(self.list_date[self.nday:],
                       self.list_line4[self.nday:], "--")
         plt.plot_date(self.list_date, self.list_close, "-")
-        plt.plot_date(self.list_trade_date, self.list_trade, "ro")
         plt.plot_date(self.list_trade_out_date, self.list_trade_out, "go")
+        plt.plot_date(self.list_trade_date, self.list_trade, "ro")
         plt.show()
 
     def plot_profit(self):
@@ -225,11 +190,13 @@ class GranvilleRules_test(GranvilleRules):
 if __name__ == '__main__':
     # 1. 用大範圍找出最佳參數
     #f_name = "測試資料/基金/{0}.csv".format(sys.argv[1])
-    f_name = "測試資料/台股/0050d.csv"
+    f_name = "測試資料/台股/6803d.csv"
+    #f_name = "測試資料/msci_china.csv"
+    #f_name = "測試資料/基金/聯博-全球高收益債券基金A2_200901.csv"
     
     test_range = np.array((np.arange(0.9, 1.1, 0.05)))
     test_result = np.arange(0.9 - 0.05, 1.1, 0.05)
-    for nday in range(5, 99, 1):
+    for nday in range(15, 100, 1):
         tmp = []
         tmp.append(nday)
         for std in test_range:
@@ -244,16 +211,16 @@ if __name__ == '__main__':
             tmp.append(profit)
 
         test_result = np.vstack([test_result, tmp])
-        
+    print(f_name)
 # 2. 使用traning 數據, 將參數印出。
-    g = GranvilleRules(
-        f_name,
-        nday=19,
-        BIAS_std1=0.15,
-        BIAS_std2=1.0)
-    profit = g.get_profit_up()
-    g.plot()
-    g.plot_profit()
+#    g = GranvilleRules(
+#        f_name,
+#        nday=185,
+#        BIAS_std1=0.15,
+#        BIAS_std2=1.0)
+#    profit = g.get_profit_up()
+#    g.plot()
+#    g.plot_profit()
     nday, Bias1, Bias2, Bias3, Bias4, ma_slope_down, ma_slope_up = g.print_param()
 
 # 3. 將資料帶入 測試數據
