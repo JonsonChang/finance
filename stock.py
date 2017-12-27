@@ -44,7 +44,23 @@ class stock:
             self.high.append(tmp_high)
             self.low.append(tmp_low)
             self.close.append(tmp_close)
-
+            
+    def reduce_data_len(self, n = 1250): 
+        # ex:最後五年的資料
+        l = len(self.date)
+        if l > n:
+            if len(self.date) >= l:
+                self.date = self.date[l-n:l-1]
+            if len(self.opened) >= l:
+                self.opened = self.opened[l-n:l-1]
+            if len(self.high) >= l:
+                self.high = self.high[l-n:l-1]
+            if len(self.low) >= l:
+                self.low = self.low[l-n:l-1]
+            if len(self.close) >= l:
+                self.close = self.close[l-n:l-1]
+        print(l, len(self.close))
+    
     def complete_data_yahoo(self,sid):
         url = "https://tw.stock.yahoo.com/q/q?s={0}".format(sid)
         #html = get_html(url)
@@ -57,7 +73,7 @@ class stock:
         l = hrefs[10].text
         c = hrefs[2].xpath(u"//b")[0].text 
         
-        if t != '13:30':
+        if t != '13:30' or o == '－':
             print("未收盤")
             return (datetime(2000,1,1),o,h,l,c)
         
@@ -78,6 +94,7 @@ class stock:
         d = int(date_split[2])
         
         dd = datetime(y,m,d)
+        #return (datetime(2000,1,1),o,h,l,c)
         return(dd,o,h,l,c)
         
     def complate_data(self, sid):
@@ -196,6 +213,7 @@ class stock:
                 pre_K = K[i - 1]
             current_K = pre_K * (2 / 3) + RSV[i] * (1 / 3)
             K.append(current_K)
+#            print(mdates.num2date(self.date[i]), current_K)
         return K
 
     def feature_D(self, n=9):
@@ -220,9 +238,8 @@ class stock:
             h = np.max(self.high[start:end])
             if np.isnan(h):
                 h = np.max(self.close[start:end])
-            Day.append(self.date[index -1])
-            pulldown.append((self.close[index -1] - h)*100/h)
-
+            Day.append(self.date[index])
+            pulldown.append((self.close[index] - h)*100/h)
         return Day, pulldown
 
 class stock_5day(stock):
@@ -378,25 +395,16 @@ def time_filter(list_data, list_datetime, starttime=8*60, endtime=14*60):
             
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
-    s = stock("測試資料/基金/富蘭克林坦伯頓全球投資系列-全球債券總報酬基金美元A.csv")
-    date, data = s.feature_Annualized(1)
-    date3, data3 = s.feature_Annualized(3)
-    date5, data5 = s.feature_Annualized(5)
-    date10, data10 = s.feature_Annualized(10)
-    
-    print("1年化: 平均 {0}，標準差 {1}，最小值 {2}".format(np.average(data),np.std(data),np.min(data)))
-    print("3年化: 平均 {0}，標準差 {1}，最小值 {2}".format(np.average(data3),np.std(data3),np.min(data3)))
-    if len(data3) >0 :
-        print("5年化: 平均 {0}，標準差 {1}，最小值 {2}".format(np.average(data5),np.std(data5),np.min(data5)))
-    if len(data10) >0 :
-        print("10年化: 平均 {0}，標準差 {1}，最小值 {2}".format(np.average(data10),np.std(data10),np.min(data10)))
+    #s = stock("測試資料/基金/富蘭克林坦伯頓全球投資系列-全球債券總報酬基金美元A.csv")
+    s = stock("測試資料/台股/6469d.csv")
+    data = s.feature_K()
 
-    plt.plot_date( date, data , "-", label="1")
-    plt.plot_date( date3, data3 , "-", label="3")
-    plt.plot_date( date5, data5 , "-", label="5")
+    plt.plot( data , "-", label="1")
+#    plt.plot_date( date3, data3 , "-", label="3")
+#    plt.plot_date( date5, data5 , "-", label="5")
     plt.grid()
     plt.legend()
-    plt.show()
+#    plt.show()
     
 
 # ############ 畫 K 線########    

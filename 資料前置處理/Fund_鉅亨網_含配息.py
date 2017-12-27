@@ -8,7 +8,8 @@ from datetime import datetime
 import matplotlib.dates as mdates
 import urllib.request, json 
 
-ID = "B15,036"  #有配息
+ID = "B03,012"  #有配息
+ID = "MSCN"  #有配息
 
 #配息
 URL = "http://fund.cnyes.com/api/v1/fund/{0}/dividend?page=".format(ID)
@@ -84,4 +85,7 @@ for page in range(1,last_page+1):
             repeat = True
         else:
             repeat = False
-np.savetxt("{0}.csv".format(ID), out, delimiter=",")
+
+
+out = out[1:]
+np.savetxt("{0}.csv".format(ID), out[::-1], delimiter=",",header="d,c" )
