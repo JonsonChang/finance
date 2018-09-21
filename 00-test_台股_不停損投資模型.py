@@ -606,7 +606,7 @@ def trade_model_guava_v2_3(start_date_str, ax, stock_obj, K_date, K, K_UD_date, 
                        
 
 def trade_model_guava_v2_4(start_date_str, ax, stock_obj, K_date, K, K_UD_date, K_up, K_down,percent_date, percent_up, percent_down): 
-    print("==v2-4==")
+    print("== v2-4 ==")
     #每次加碼時，都比買進目前的張數
     #賣出時，依次數倒金字塔賣出
     #動態計算 percentage ，最小值為 5%
@@ -630,6 +630,7 @@ def trade_model_guava_v2_4(start_date_str, ax, stock_obj, K_date, K, K_UD_date, 
     unrealized_profit = 0 # 未實現損益 
     realized_profit = 0 # 已實現損益 
     profit_stop_counter = 0 # 計算第幾次出場
+    profit_stop = 9999
     
     percentage = 0.1  # 10% = 0.1, 
     
@@ -687,24 +688,27 @@ def trade_model_guava_v2_4(start_date_str, ax, stock_obj, K_date, K, K_UD_date, 
                 all_profit = (realized_profit+unrealized_profit)/buy_sum
                 print ("\t\t總投入:{0:.2f} 總賣出:{1:.2f}，未實現損益:{2:.2f} , 已實現損益 {3:.2f}, 目前報酬 {color}{4:.2f}%".format(buy_sum*1000, sell_sum*1000,unrealized_profit*1000,realized_profit*1000,all_profit*100, color=Fore.CYAN,color_reset=Fore.RESET))
             
-            #賣出
+        # *.*.*. 賣出 *.*.*.
+            #計算停利百分比
+            percentage = get_val_by_date(percent_date, percent_up, current_date)
+            if percentage < 0:
+                percentage = -1 * percentage
+            if percentage < 0.05:
+                percentage = 0.05                    
+                
+            #計算停利點
+            profit_stop = 9999
+            if exit_count == 0 or profit_stop_counter == 0:
+                profit_stop_multiple =  (1+percentage)
+                profit_stop_counter = 0
+            else:
+                profit_stop_multiple =  1+ (profit_stop_counter+1)*percentage
+            profit_stop = profit_stop_multiple * average_cost
+            #return profit_stop
+            #print(profit_stop , profit_stop_multiple , average_cost )            
+
+            
             if share_count >0 and K[idx] > up:
-                #計算停利百分比
-                percentage = get_val_by_date(percent_date, percent_up, current_date)
-                if percentage < 0:
-                    percentage = -1 * percentage
-                if percentage < 0.05:
-                    percentage = 0.05                    
-                    
-                #計算停利點
-                profit_stop = 9999
-                if exit_count == 0 or profit_stop_counter == 0:
-                    profit_stop_multiple =  (1+percentage)
-                    profit_stop_counter = 0
-                else:
-                    profit_stop_multiple =  1+ (profit_stop_counter+1)*percentage
-                profit_stop = profit_stop_multiple * average_cost
-                #print(profit_stop , profit_stop_multiple , average_cost )
                 if h[idx] > profit_stop:
                     profit_stop_counter = profit_stop_counter +1 
                     exit_count = exit_count +1 
@@ -724,7 +728,7 @@ def trade_model_guava_v2_4(start_date_str, ax, stock_obj, K_date, K, K_UD_date, 
                     
                     share_count = share_count -del_shares
                     sell_sum = sell_sum + close[idx]*del_shares
-                    print ("{0} {color}賣出{color_reset} 目前張數:{1:.2f}, 賣出張數:{del_shares:.2f}, 倍數：{8:.2f} 平均成本:{2:.2f}, 進場次數:{3}, 下次進場:{4:.2f} 停利標準: {5:.2f}, 最高價:{6:.2f} 收盤價:{7:.2f}, up percentage={percentage:.2f}".format(date_str, share_count,average_cost,entry_count,average_cost*0.9,profit_stop, h[idx],close[idx],profit_stop_multiple,del_shares=del_shares,percentage=percentage,color=Fore.GREEN,color_reset=Fore.RESET))
+                    print ("{0} {color}賣出{color_reset} 目前張數:{1:.2f}, 賣出張數:{del_shares:.2f}(1/{tmp:.0f}), 倍數：{8:.2f} 平均成本:{2:.2f}, 進場次數:{3}, 下次進場:{4:.2f} 停利標準: {5:.2f}, 最高價:{6:.2f} 收盤價:{7:.2f}, up percentage={percentage:.2f}".format(date_str, share_count,average_cost,entry_count,average_cost*0.9,profit_stop, h[idx],close[idx],profit_stop_multiple,del_shares=del_shares,percentage=percentage,color=Fore.GREEN,color_reset=Fore.RESET,tmp=tmp))
                     
                     realized_profit = realized_profit + (close[idx]-average_cost)*del_shares
                     unrealized_profit = (close[idx] -average_cost)*share_count
@@ -752,7 +756,7 @@ def trade_model_guava_v2_4(start_date_str, ax, stock_obj, K_date, K, K_UD_date, 
         unrealized_profit = (close[-1] -average_cost)*share_count
         all_profit = (realized_profit+unrealized_profit)/buy_sum
         print("\r\n")
-        print ("{5}\t總投入:{0:.2f} 總賣出:{1:.2f}，未實現損益:{2:.2f} , 已實現損益 {3:.2f}, 目前報酬 {6}{4:.2f}%".format(buy_sum*1000, sell_sum*1000,unrealized_profit*1000,realized_profit*1000,all_profit*100,date_str, Fore.WHITE + Style.BRIGHT))
+        print ("{5}\t總投入:{0:.2f} 總賣出:{1:.2f}，未實現損益:{2:.2f} , 已實現損益 {3:.2f}, 目前報酬 {6}{4:.2f}%, 下次出場：{profit_stop:.2f}".format(buy_sum*1000, sell_sum*1000,unrealized_profit*1000,realized_profit*1000,all_profit*100,date_str, Fore.WHITE + Style.BRIGHT,profit_stop=profit_stop))
     print("{0}\t目前 K:{1:.2f}, 合理低檔:{2:.2f},合理高檔:{3:.2f}, 收盤價:{4:.2f}, 低：{5:.2f}% 高：{6:.2f}%".format(date_str, K[-1], down,up, close[-1], percent_down[-1]*100, percent_up[-1]*100))
     if K[-1] < down :
         print("\t",Fore.YELLOW + Back.GREEN + Style.BRIGHT +"--- 低檔 ---")
