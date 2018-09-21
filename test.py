@@ -119,17 +119,43 @@ def test_oneday():
 def test_BIAS():
     #計算乖離率, 有常態分佈
     nday = 50
-    s = stock_daytrade("測試資料/台灣加權指數/TXF1-分鐘-成交價.csv")
+    f_name = "測試資料/台股/HYGd.csv"
+#    s = stock_daytrade(f_name)
+    s = stock(f_name)
     c = np.array(s.close)
     o = np.array(s.opened)
     x = s.feature_BIAS(nday)
     x = x[nday:]
-    x = tools.time_filter(x, s.date,9*60,11*60)
+#    x = tools.time_filter(x, s.date,9*60,11*60)
     a, b = tools.normfun_ex(x)
     plt.plot(a, b, color='g', linewidth=1)
-    plt.hist(x, 500, normed=1, facecolor='blue', alpha=0.5)
+    plt.hist(x, 50, normed=1, facecolor='blue', alpha=0.5)
     plt.show()
 
+    def fa(x):
+        if x >0:
+            return True
+        else:
+            return False
+    def fb(x):
+        if x >0:
+            return False
+        else:
+            return True
+                    
+    x1 = np.array(list(filter(fa,x)))
+    x2 = np.array(list(filter(fb,x)))
+    print(x1)
+    
+    a, b = tools.normfun_ex(x1)
+    plt.plot(a, b, color='g', linewidth=1)
+    plt.hist(x1, 50, normed=1, facecolor='blue', alpha=0.5)
+    plt.show()
+    a, b = tools.normfun_ex(x2)
+    plt.plot(a, b, color='g', linewidth=1)
+    plt.hist(x2, 50, normed=1, facecolor='blue', alpha=0.5)
+    plt.show()    
+    
     # 如何定義漲多，跌深
     #sigma = 1  # 50% = 0.65，60% = 0.85，70% = 1.04，80%=1.3，90%=1.6
     #up_signal = x.mean() + sigma * x.std()
@@ -149,14 +175,32 @@ def test_K():
     x = np.array(x[nday:])
 
     a, b = tools.normfun_ex(x)
+    plt.plot(a, b, color='g', linewidth=1) 
+    plt.hist(x, 60, normed=1, facecolor='blue', alpha=0.5)
+    plt.show()
+
+def test():
+    nday = 20
+    s = stock("測試資料/台股/0056d.csv")
+    x = s.feature_diff()[nday:]*100
+
+    a, b = tools.normfun_ex(x)
     plt.plot(a, b, color='g', linewidth=1)
     plt.hist(x, 60, normed=1, facecolor='blue', alpha=0.5)
     plt.show()
+
+def fn_twstock():
+    from twstocka import Stock    
+    stock = Stock('2330')
+    a= stock.fetch_from(2013, 11)
+    b = stock.price
+
 
 
 if __name__ == '__main__':
     #test_oneday()
     # test_profit()
     test_BIAS()
+    #test()
     #test_ma_slope(60)
     # test_K()

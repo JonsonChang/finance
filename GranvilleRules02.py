@@ -7,6 +7,8 @@ import sys
 import matplotlib.pyplot as plt
 import numpy as np
 from stock import stock
+from stock import stock_5day
+import tools
 
 
 class GranvilleRules:
@@ -16,6 +18,7 @@ class GranvilleRules:
         self.BIAS_std1 = BIAS_std1
         self.BIAS_std2 = BIAS_std2
         self.s = stock(filename)
+#        self.s = stock_5day(filename)
 
         self.list_ma = self.s.feature_MA(nday)
         self.list_ma_slope = np.array(self.s.feature_MA_slope(nday))  # 均線斜率
@@ -24,21 +27,34 @@ class GranvilleRules:
         self.BIAS_mean = self.list_BIAS[nday:].mean()
         self.BIAS_std = self.list_BIAS[nday:].std()
 
-        self.list_line1 = (self.BIAS_mean + self.BIAS_std1 *
-                           self.BIAS_std) * self.list_ma + self.list_ma
-        self.list_line2 = (self.BIAS_mean - self.BIAS_std1 *
-                           self.BIAS_std) * self.list_ma + self.list_ma
-        self.list_line3 = (self.BIAS_mean + self.BIAS_std2 *
-                           self.BIAS_std) * self.list_ma + self.list_ma
-        self.list_line4 = (self.BIAS_mean - self.BIAS_std2 *
-                           self.BIAS_std) * self.list_ma + self.list_ma
+        
+        def fa(x):
+            if x >0:
+                return True
+            else:
+                return False
+        def fb(x):
+            if x >0:
+                return False
+            else:
+                return True
+                        
+        x1 = np.array(list(filter(fa,self.list_BIAS)))
+        x2 = np.array(list(filter(fb,self.list_BIAS)))
+        self.list_line1 = (tools.list_percentage(x1,BIAS_std1)+1)* self.list_ma 
+        self.list_line3 = (tools.list_percentage(x1,BIAS_std2)+1)* self.list_ma 
+        
+        self.list_line2 = (tools.list_percentage(x2,(1-BIAS_std1))+1)* self.list_ma
+        self.list_line4 = (tools.list_percentage(x2,(1-BIAS_std2))+1)* self.list_ma 
+        
+        print(tools.list_percentage(self.list_BIAS,0.1), tools.list_percentage(self.list_BIAS,0.5), tools.list_percentage(self.list_BIAS,0.6), tools.list_percentage(self.list_BIAS,0.85))
 
         # 均線向下時，放寬
-        self.ma_slope_down = self.list_ma_slope[nday:].mean() - self.BIAS_std1 * self.list_ma_slope[nday:].std()
+        self.ma_slope_down = self.list_ma_slope[nday:].mean() - 0.15 * self.list_ma_slope[nday:].std()
         if self.ma_slope_down > 0:
             self.ma_slope_down = 0
         # 均線向上時，放寬
-        self.ma_slope_up = self.list_ma_slope[nday:].mean() + self.BIAS_std1 * self.list_ma_slope[nday:].std()
+        self.ma_slope_up = self.list_ma_slope[nday:].mean() + 0.15 * self.list_ma_slope[nday:].std()
 
     def cross_over(self, line1, line2, index):
         if (index < 1):
@@ -188,31 +204,39 @@ class GranvilleRules_test(GranvilleRules):
 
 def get_good_days(test_result):
     l = len(test_result)
+    l2 = len(test_result[0])
     max_val = -999
-    max_day = -1
+    
+    best_idx1 = -1
+    best_idx2 = -1
     for idx in range(3,l-3):
-        val = (test_result[idx-1][3-1] +  test_result[idx-1][3] + test_result[idx-1][3+1]+ test_result[idx][3-1] + test_result[idx][3] + test_result[idx][3+1] + test_result[idx+1][3-1] + test_result[idx+1][3] + test_result[idx+1][3+1])/9
-        print(test_result[idx][0], val)
-        if val > max_val :
-            max_val = val
-            max_day = test_result[idx][0]
+        for idx2 in range(2,l2-2):
+            val = (test_result[idx-1][idx2-1] + test_result[idx-1][idx2] + test_result[idx-1][idx2+1]+ 
+            test_result[idx][idx2-1] + test_result[idx][idx2] + test_result[idx][idx2+1] + 
+            test_result[idx+1][idx2-1] + test_result[idx+1][idx2] + test_result[idx+1][idx2+1])/9
+            if val > max_val :
+                max_val = val
+                best_idx1 = idx
+                best_idx2 = idx2
+#                print(idx,idx2)
 
-    print("\n ## Best day", max_day, max_val)
-    return max_day
+    best_ma =test_result[best_idx1][0]
+    best_std = test_result[0][best_idx2]
+    print("\n ## Best day: {}, best STD: {}, val: {}".format(best_ma,best_std , max_val))
+    return best_ma,best_std
 
 if __name__ == '__main__':
     # 1. 用大範圍找出最佳參數
     #f_name = "測試資料/基金/{0}.csv".format(sys.argv[1])
-    #f_name = "測試資料/台股/000001.SSd.csv"
-    #f_name = "測試資料/台股/HYGd.csv"
-    f_name = "測試資料/台股/0050d.csv"
+    f_name = "測試資料/台股/000001.SSd.csv"
+    f_name = "測試資料/台股/HYGd.csv"
     #f_name = "測試資料/msci_china.csv"
     #f_name = "測試資料/基金/貝萊德環球政府債券基金A2美元.csv"
     #f_name = "測試資料/基金/HYG_5Y.csv"
     
-    test_range = np.array((np.arange(0.9, 1.1, 0.05)))
-    test_result = np.arange(0.9 - 0.05, 1.1, 0.05)
-    for nday in range(15, 30, 1):
+    test_range = np.array((np.arange(0.3, 0.48, 0.01)))
+    test_result = np.arange(0.3 - 0.01, 0.48, 0.01)
+    for nday in range(15, 90, 1):
         tmp = []
         tmp.append(nday)
         for std in test_range:
@@ -220,7 +244,7 @@ if __name__ == '__main__':
             g = GranvilleRules(
                 f_name,
                 nday=nday,
-                BIAS_std1=0.15,
+                BIAS_std1=0.03,
                 BIAS_std2=std)
             profit = g.get_profit_up()
             print(nday, std, profit)
@@ -229,15 +253,16 @@ if __name__ == '__main__':
         test_result = np.vstack([test_result, tmp])
         
 # 計算最佳天數。
-    best_ma = get_good_days(test_result)
+    best_ma,best_std = get_good_days(test_result)
+    #best_ma =13
         
     print(f_name)
 # 2. 使用traning 數據, 將參數印出。
     g = GranvilleRules(
         f_name,
         nday=int(best_ma),
-        BIAS_std1=0.15,
-        BIAS_std2=1.0)
+        BIAS_std1=0.03,
+        BIAS_std2=best_std)
     profit = g.get_profit_up()
     g.plot()
     g.plot_profit()

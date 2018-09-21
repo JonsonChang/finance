@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 import numpy as np
-from datetime import datetime
+import tools
+from datetime import datetime ,timedelta
 import matplotlib.dates as mdates
-import twstock
+from twstocka import Stock
 from urllib.request import urlopen
 from lxml import etree
 #from matplotlib.finance import candlestick_ohlc
@@ -10,9 +11,12 @@ from lxml import etree
 
 class stock:
 
-    def __init__(self, filename):
-        def datefunc(x): return mdates.date2num(
-            datetime.strptime(x.decode('ascii'), '%Y/%m/%d'))
+    def __init__(self, filename, adj_fix=False):
+        def datefunc(x): 
+            # 日期格式，將'%Y-%m-%d' 轉成 '%Y/%m/%d'
+            ret = mdates.date2num(datetime.strptime(x.decode('ascii').replace('-','/'), '%Y/%m/%d'))
+            return ret
+            
         self.filename = filename
         self.raw = np.genfromtxt(
             filename,
@@ -28,6 +32,7 @@ class stock:
         self.high = []
         self.low = []
         self.close = []
+        self.adj = [] # 只有yahoo finance 使用
 
         for index, data in enumerate(self.raw):
             tmp_date = data[0]
@@ -35,6 +40,7 @@ class stock:
             tmp_high = data[2]
             tmp_low = data[3]
             tmp_close = data[4]
+            tmp_adj = data[5]
 
             if np.isnan(tmp_close):
                 continue
@@ -44,7 +50,19 @@ class stock:
             self.high.append(tmp_high)
             self.low.append(tmp_low)
             self.close.append(tmp_close)
+            self.adj.append(tmp_adj)
+        
+        if adj_fix:
+            close = np.array(self.close)
+            adj = np.array(self.adj)
+            diff = adj - close
             
+            self.opened   = self.opened +diff
+            self.high     = self.high   +diff
+            self.low      = self.low    +diff
+            self.close    = self.close  +diff
+        
+
     def reduce_data_len(self, n = 1250): 
         # ex:最後五年的資料
         l = len(self.date)
@@ -73,6 +91,7 @@ class stock:
         l = hrefs[10].text
         c = hrefs[2].xpath(u"//b")[0].text 
         
+        print(t,o,h,l,c)
         if t != '13:30' or o == '－':
             print("未收盤")
             return (datetime(2000,1,1),o,h,l,c)
@@ -84,10 +103,12 @@ class stock:
         #    print(etree.tostring(h, encoding='utf8') )
         #    index = index +1
         
-        date_element = page.xpath(u"//td[contains(@width, '160')]/font")    
+        date_element = page.xpath(u"//td[contains(@width, '160')]")    
+        date_element = page.xpath(u"//td[contains(@width, '160')]/font")
         date_str = date_element[0].text
-        date_str.index('資料日期:')
-        date_str = date_str[7:]
+        print(date_str)
+        #date_str.index('資料日期:')
+        date_str = date_str[12:]
         date_split = date_str.split("/")
         y = int(date_split[0])+1911
         m = int(date_split[1])
@@ -100,14 +121,18 @@ class stock:
     def complate_data(self, sid):
         ret = False
         last_date = self.date[-1]
-        stock = twstock.Stock(sid)
+        stock = Stock(sid)
+        
+        
+        fetch_from_date = mdates.num2date(last_date) + timedelta(-10)
+        stock.fetch_from(fetch_from_date.year, fetch_from_date.month)
         
         col_num = len(self.raw[0]) # csv 檔的 column 數
         append_str = ""
         for index in range(0,col_num -5):
             append_str = append_str + ",0"
         
-        for index in range(-10,0):
+        for index in range(-len(stock.date),0):
             d = stock.date[index]
             o = stock.open[index]
             h = stock.high[index]
@@ -121,16 +146,21 @@ class stock:
                 f.close()
                 ret = True
 
+        #return ret  # no yahoo
         #yahoo 資料確認
         d,o,h,l,c = self.complete_data_yahoo(sid)
         #print(d,o,h,l,c)
-        if(mdates.date2num(d) > mdates.date2num(stock.date[-1]) and mdates.date2num(d) > last_date ):
-            str = "{0},{1},{2},{3},{4}".format(d.strftime('%Y/%m/%d'),o,h,l,c )
-            print("資料回補 yahoo：" + str)
-            f = open(self.filename, 'a+')
-            f.write(str+append_str+"\n")
-            f.close()
-            ret = True
+        try:
+            if(mdates.date2num(d) > mdates.date2num(stock.date[-1]) and mdates.date2num(d) > last_date ):
+                str = "{0},{1},{2},{3},{4}".format(d.strftime('%Y/%m/%d'),o,h,l,c )
+                print("資料回補 yahoo：" + str)
+                f = open(self.filename, 'a+')
+                f.write(str+append_str+"\n")
+                f.close()
+                ret = True
+        except:
+            print("Error 資料回補 yahoo：" + str)
+            pass
         # 有更新資料時，回傳True
         return ret
         
@@ -158,7 +188,10 @@ class stock:
         ret = np.cumsum(self.close, dtype=float)
         ret[n:] = ret[n:] - ret[:-n]
         # return ret[n - 1:] / n
-        return ret[:] / n
+        
+        ma = ret[:] / n
+        d = self.date
+        return d[n:], ma[n:]
 
     def feature_MA_slope(self, n=10): # 均線協率
         ret = self.feature_MA(n)
@@ -171,6 +204,13 @@ class stock:
         ret = ret / n  # average
         ret = ((self.close - ret) / ret)
         return ret[:]
+        
+    def feature_BIAS_down(self, n=5):  # 只計算負的乖離率
+        ret = np.cumsum(self.close, dtype=float)
+        ret[n:] = ret[n:] - ret[:-n]
+        ret = ret / n  # average
+        ret = ((self.close - ret) / ret)
+        return ret[:]        
 
     def feature_Annualized(self, y=5, period = 20):  
         # 年化報酬率, 
@@ -227,6 +267,13 @@ class stock:
             D.append(current_D)
         return D
 
+    def feature_K_MA(self, n=100): # k 值的移動平均線
+        K = self.feature_K()
+        ret = np.cumsum(K, dtype=float)
+        ret[n:] = ret[n:] - ret[:-n]
+        ma = ret[:] / n
+        return self.date[n:], ma[n:]   
+        
     def feature_pulldown(self, n=120):
         #高檔拉回幅度
         Day = []
@@ -242,60 +289,60 @@ class stock:
             pulldown.append((self.close[index] - h)*100/h)
         return Day, pulldown
 
+    def feature_pullUp(self, n=120):
+        #低檔拉回幅度
+        Day = []
+        pulldown = []
+        l = len(self.close)
+        for index in range(n+1,l):
+            start = index - n
+            end = index
+            h = np.min(self.high[start:end])
+            if np.isnan(h):
+                h = np.min(self.close[start:end])
+            Day.append(self.date[index])
+            pulldown.append((self.close[index] - h)*100/h)
+        return Day, pulldown
+    
+    def feature_diff(self, n=1): #漲跌幅度 百分比計算
+        close_n = np.roll(self.close, n)
+        ret = (np.array(self.close) - close_n) / close_n
+        
+        return ret		
 class stock_5day(stock):
 
-    def __init__(self, filename):
-        def datefunc(x): return mdates.date2num(
-            datetime.strptime(x.decode('ascii'), '%Y/%m/%d'))
-        self.raw = np.genfromtxt(
-            filename,
-            delimiter=',',
-            skip_header=1,
-            converters={0: datefunc})
-            
-        if(self.raw[0][0] > self.raw[1][0]):
-            self.raw = self.raw[::-1]  # 反向
+    def __init__(self, filename, adj_fix = False):
 
+        super().__init__(filename, adj_fix)
+        
+        a_day_date = self.date
+        a_day_opened = self.opened
+        a_day_high = self.high
+        a_day_low = self.low
+        a_day_close = self.close
+        a_day_adj = self.adj
+        
         self.date = []
         self.opened = []
         self.high = []
         self.low = []
         self.close = []
         
-        a_day_date = []
-        a_day_opened = []
-        a_day_high = []
-        a_day_low = []
-        a_day_close = []        
-
-        for index, data in enumerate(self.raw):
-            tmp_date = data[0]
-            tmp_open = data[1]
-            tmp_high = data[2]
-            tmp_low = data[3]
-            tmp_close = data[4]
-
-            if np.isnan(tmp_close):
-                continue
-
-            a_day_date.append(tmp_date)
-            a_day_opened.append(tmp_open)
-            a_day_high.append(tmp_high)
-            a_day_low.append(tmp_low)
-            a_day_close.append(tmp_close)
-
-        for index in range(5 , len(a_day_close), 5):
+        #資料長度調整為5的倍數, 這樣才會有最新一日的資料。
+        trim_len = 5 - len(a_day_date) % 5
+        for index in range(trim_len + 5 , len(a_day_close), 5):
             start = index -5
             end = index
             tmp_o =  np.array(a_day_opened[start:end])
             tmp_c =  np.array(a_day_close[start:end])
             tmp_h =  np.array(a_day_high[start:end])
             tmp_l =  np.array(a_day_low[start:end])
-            tmp_date = a_day_date[index - 1]
+            tmp_date = a_day_date[end]
             tmp_open = tmp_o[0]
             tmp_high = tmp_h.max()
             tmp_low = tmp_l.min()
             tmp_close = tmp_c[4]
+            
             
             if np.isnan(tmp_open):
                 tmp_open = tmp_c[0]
@@ -306,10 +353,8 @@ class stock_5day(stock):
             self.opened.append(tmp_open)
             self.high.append(tmp_high)
             self.low.append(tmp_low)
-            self.close.append(tmp_close)            
-            
-            
-
+            self.close.append(tmp_close)   
+       
         
 class stock_daytrade(stock):
     def __init__(self, filename):
@@ -395,17 +440,103 @@ def time_filter(list_data, list_datetime, starttime=8*60, endtime=14*60):
             
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
+    
     #s = stock("測試資料/基金/富蘭克林坦伯頓全球投資系列-全球債券總報酬基金美元A.csv")
-    s = stock("測試資料/台股/6469d.csv")
-    data = s.feature_K()
+    fname = "測試資料/台股/VTd.csv"
+    s = stock(fname, adj_fix = False)
+    s5 = stock_5day(fname, adj_fix = False)
+    
+    ma_d, ma = s.feature_MA(30)
+    k = s.feature_K()
+#    k_date, k_up, k_down = tools.list_best_range(s.date,k,max = 0.8, min=0.2, n = 100)
+    k_date, k_up, k_down = tools.list_best_range_std(s.date,k,std_range=1.2, n = 100)
+    kma_d, kma = s.feature_K_MA(n=100)
+    
+    
+    k5 = s5.feature_K()
+#    k5_date, k5_up, k5_down = tools.list_best_range(s5.date,k5,max = 0.8, min=0.2, n = 100)
+    k5_date, k5_up, k5_down = tools.list_best_range_std(s5.date,k5,std_range=1.2, n = 100)
+    k5ma_d, k5ma = s5.feature_K_MA(n=100)
+    
+    print(len(s5.date))
+    print(len(k5ma_d))
+    print(len(k5ma))
+    print(len(k5))
+    #print(len(s.date))
+    #print(len(s.close))
 
-    plt.plot( data , "-", label="1")
+#    plt.plot( data[:] , "-", label="1")
+#    plt.plot_date( s.date, s.close , "-", label="3")
 #    plt.plot_date( date3, data3 , "-", label="3")
 #    plt.plot_date( date5, data5 , "-", label="5")
-    plt.grid()
-    plt.legend()
+#    plt.grid()
+#    plt.legend()
 #    plt.show()
+
+# ############ 兩種 Y 軸#######    
+#    t = np.arange(0.01, 10.0, 0.01)
+#    data1 = np.exp(t)
+#    data2 = np.sin(2 * np.pi * t)
+#    
+#    fig, ax1 = plt.subplots()
+#    
+#    color = 'tab:red'
+#    ax1.set_xlabel('date')
+#    ax1.set_ylabel('price', color=color)
+#    ax1.plot_date(s.date, s.close, "-", color=color)
+#    ax1.tick_params(axis='y', labelcolor=color)
+#    
+#    ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
+#    
+#    color = 'tab:blue'
+#    ax2.set_ylabel('K', color=color)  # we already handled the x-label with ax1
+#    ax2.plot_date(s.date, k,"-", color=color)
+#    ax2.tick_params(axis='y', labelcolor=color)
+#    
+#    fig.tight_layout()  # otherwise the right y-label is slightly clipped
+#    plt.show()
+
+# ############ 上下 兩圖 #######    
+    plt.close('all')
+    fig = plt.figure()
+#    fig = plt.figure(figsize=(20,20))
+    ax1 = plt.subplot2grid((4, 1), (0, 0), rowspan=2)
+    ax2 = plt.subplot2grid((4, 1), (2, 0))
+    ax3 = plt.subplot2grid((4, 1), (3, 0))
     
+
+    ax1.set_title(fname)
+    ax1.plot_date(s.date, s.close, "-")
+    ax1.plot_date(ma_d, ma, "-")
+    date_str = mdates.num2date(s.date[-1]).strftime("%m/%d")
+    ax1.text(s.date[-1], s.close[-1] , "{0}={1}".format(date_str,s.close[-1]))
+    ax1.grid()
+    
+    ax2.plot_date(s.date, k,"-")
+    ax2.plot_date(kma_d, kma ,"-")
+    ax2.plot_date(k_date, k_up,"-")
+    ax2.plot_date(k_date, k_down,"-")
+    ax2.grid()
+    
+    
+    
+    ax3.plot_date(s5.date, k5,"-")
+    ax3.plot_date(k5ma_d, k5ma ,"-")
+    ax3.plot_date(k5_date, k5_up,"-")
+    ax3.plot_date(k5_date, k5_down,"-")
+    ax3.text(k5_date[-1], k5_up[-1], round(k5_up[-1],2))
+    ax3.text(k5_date[-1], k5[-1] , "K=" +str(round(k5[-1],2)))
+    ax3.text(k5_date[-1], k5_down[-1], round(k5_down[-1],2))
+    date_str = mdates.num2date(k5_date[-1]).strftime("%m/%d")
+    ax3.text(k5_date[-1], 0 , date_str)
+    ax3.grid()
+    
+    print( )
+#    plt.tight_layout()
+    
+    plt.show()
+    #plt.savefig('test.png',dpi=199) # 不顯示存圖
+  
 
 # ############ 畫 K 線########    
 #    s = stock_daytrade("測試資料/台灣加權指數/TXF1-分鐘-成交價_test.csv")

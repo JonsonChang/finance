@@ -157,7 +157,6 @@ class Stock(analytics.Analytics):
 
     def fetch_from(self, year: int, month: int):
         """Fetch data from year, month to current year month data"""
-        print("fetch_from start ", year, month )
         self.raw_data = []
         self.data = []
         today = datetime.datetime.today()
@@ -171,9 +170,9 @@ class Stock(analytics.Analytics):
     def fetch_31(self):
         """Fetch 31 days data"""
         today = datetime.datetime.today()
-        before = today - datetime.timedelta(days=3)
-        self.fetch_from(today.year, today.month)
-        self.data = self.data[-1:]
+        before = today - datetime.timedelta(days=60)
+        self.fetch_from(before.year, before.month)
+        self.data = self.data[-31:]
         return self.data
 
     @property
