@@ -68,3 +68,4 @@ if __name__ == '__main__':
                 sid = config['sid']
                 #update_index(sid, 5)  # 5年
                 update_index(sid, 10) # 10年
+                #break

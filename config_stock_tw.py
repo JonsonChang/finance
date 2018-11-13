@@ -3,32 +3,11 @@
 Configs = [
 #	{
 #        "S_name":"test",
-#        "sid":"VT",
+#        "sid":"0056",
 #		"best_ma":36,
 #        "Update":"TW",
-#        "test_start_date":"2017/9/1"
+#        "test_start_date":"2007/9/1"
 #    },
-	{
-        "S_name":"中國 A50",
-        "sid":"00636",
-		"best_ma":36,
-        "Update":"TW",
-        "test_start_date":"2017/11/1"
-    },
-#	{
-#        "S_name":"中國 msci",
-#        "sid":"00703",
-#		"best_ma":36,
-#        "Update":"TW",
-#        "test_start_date":"2017/11/1"
-#    },    
-	{
-        "S_name":"台灣50",
-        "sid":"0050",
-		"best_ma":31,
-        "Update":"TW",
-        "test_start_date":"2018/9/1"
-    },	
 	{
         "S_name":"高股息",
         "sid":"0056",
@@ -36,6 +15,21 @@ Configs = [
         "Update":"TW",
         "test_start_date":"2018/9/1"
     },
+	{
+        "S_name":"中國 A50",
+        "sid":"00636",
+		"best_ma":36,
+        "Update":"TW",
+        "test_start_date":"2017/11/1"
+    },
+  
+	{
+        "S_name":"台灣50",
+        "sid":"0050",
+		"best_ma":31,
+        "Update":"TW",
+        "test_start_date":"2018/9/1"
+    },	
 	{
         "S_name":"中華電",
         "sid":"2412",
@@ -62,7 +56,7 @@ Configs = [
         "sid":"9917",
 		"best_ma":25,
         "Update":"TW",
-        "test_start_date":"2018/9/1"
+        "test_start_date":"2018/11/1"
     },
 	{
         "S_name":"聯華",
@@ -76,7 +70,7 @@ Configs = [
         "sid":"2912",
 		"best_ma":33,
         "Update":"TW",
-        "test_start_date":"2018/9/1"
+        "test_start_date":"2018/11/1"
     },
 	{
         "S_name":"統一",
