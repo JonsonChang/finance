@@ -1,6 +1,14 @@
-# finance
+## 說明
+- 每日一鍵更新股價資訊
+- 依不停損投資模型計算出當日關鍵參數，並顯示投資操作方法。
+- 本程式並無自動下單功能，請到進出場指示時，請在第二天開盤時自行下單。
+- 不停損投資模型為一個攤平加碼的策略，在不清楚投資策略前，請勿跟著程式下單。
 
-使用python3
+
+![image](https://raw.githubusercontent.com/JonsonChang/finance/master/readme_pic/Image%201.png)
+
+## 程式環境
+- python3
 
 ## 使用方式：
 ### 設定要追蹤的股票代號
