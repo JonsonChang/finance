@@ -49,7 +49,11 @@ class TWSEFetcher(BaseFetcher):
     def fetch(self, year: int, month: int, sid: str, retry: int=5):
         params = {'date': '%d%02d01' % (year, month), 'stockNo': sid}
         for retry_i in range(retry):
-            r = requests.get(self.REPORT_URL, params=params)
+            # add close header here to avoid connection create too fast and got over max connection problem.
+            r = requests.get(self.REPORT_URL, params=params,headers={'Connection':'close'})
+            # since the connection creating too fast, sometime will be reject from server. make each connection wait
+            # 3 sec.
+            time.sleep(3)
             try:
                 data = r.json()
             except JSONDecodeError:
