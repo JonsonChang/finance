@@ -8,8 +8,8 @@ from datetime import datetime
 import matplotlib.dates as mdates
 import urllib.request, json 
 
-ID = "B03,012"  #有配息
-ID = "MSCN"  #有配息
+ID = "B03,011"  #有配息
+ID = "B2o0ob9"  #有配息
 
 #配息
 URL = "http://fund.cnyes.com/api/v1/fund/{0}/dividend?page=".format(ID)
@@ -49,6 +49,16 @@ def true_val(current_date, current_val):
     for idx, val in enumerate(dividend_date):
         if dividend_date[idx]<=current_date and dividend_date[idx+1]>current_date :
             return current_val + dividend_val[idx]
+
+
+def true_val_2(current_date, current_val):
+    dividend_sum = 0
+    for idx, val in enumerate(dividend_date):
+        if dividend_date[idx]>=current_date:
+            dividend_sum = dividend_sum + dividend_val[idx] 
+            
+    return current_val - dividend_sum
+
     
         
 #淨值
@@ -75,7 +85,7 @@ for page in range(1,last_page+1):
                 tradeDate = int(item['tradeDate'])
                 tradeDate = (tradeDate/86400) + 25569.333333333333 # to excel date
                 nav = float(item['nav'])
-                nav = true_val(tradeDate, nav) #還原配息值
+                nav = true_val_2(tradeDate, nav) #還原配息值
                 print(tradeDate, item['nav'])
                 l = [tradeDate, nav]
                 out = np.vstack([out, l])
