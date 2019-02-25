@@ -14,15 +14,20 @@ class stock:
     def __init__(self, filename, adj_fix=False):
         def datefunc(x): 
             # 日期格式，將'%Y-%m-%d' 轉成 '%Y/%m/%d'
-            ret = mdates.date2num(datetime.strptime(x.decode('ascii').replace('-','/'), '%Y/%m/%d'))
+            # since str and bytes is different in python 3. so it need encode and decode function here.
+            tmpx = x.encode('ascii').decode().replace('-','/')
+            #ret = mdates.date2num(datetime.strptime(x.encode('ascii').replace('-','/'), '%Y/%m/%d'))
+            ret = mdates.date2num(datetime.strptime(tmpx, '%Y/%m/%d'))
             return ret
             
         self.filename = filename
+        # add encoding parameter, let this function know the file format is ISO-8859-1, then it will working fine
+        # under system with UTF-8 environment.
         self.raw = np.genfromtxt(
             filename,
             delimiter=',',
             skip_header=1,
-            converters={0: datefunc})
+            converters={0: datefunc},encoding='ISO-8859-1')
             
         if(self.raw[0][0] > self.raw[1][0]):
             self.raw = self.raw[::-1]  # 反向
