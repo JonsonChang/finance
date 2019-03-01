@@ -12,12 +12,14 @@ from stock import stock
 class GranvilleRules:
     def __init__(self, filename, nday=40, BIAS_std1=0.15, BIAS_std2=1):
         # for traning data, 自動找出最佳的 乖離率
+        print(filename, nday)
+        
         self.nday = nday
         self.BIAS_std1 = BIAS_std1
         self.BIAS_std2 = BIAS_std2
-        self.s = stock(filename)
+        self.s = stock(filename, adj_fix = False)
 
-        self.list_ma = self.s.feature_MA(nday)
+        _, self.list_ma = self.s.feature_MA(nday)
         self.list_ma_slope = np.array(self.s.feature_MA_slope(nday))  # 均線斜率
         self.list_BIAS = self.s.feature_BIAS(nday)
 

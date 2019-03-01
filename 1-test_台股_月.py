@@ -12,7 +12,8 @@ import matplotlib.dates as mdates
             
 if __name__ == '__main__':
     sid = sys.argv[1]
-    s = stock("測試資料/台股/{0}.csv".format(sid))
+    #s = stock("測試資料/台股/{0}.csv".format(sid))
+    s = stock("測試資料/台股/{0}.csv".format(sid), adj_fix=True)  # yahoo 的還原資料
 #    nday = int(sys.argv[2]) #設定主軸
     period = 12
     date, data = s.feature_Annualized(1, period)

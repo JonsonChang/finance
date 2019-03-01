@@ -126,7 +126,7 @@ class stock:
     def complate_data(self, sid):
         ret = False
         last_date = self.date[-1]
-        stock = Stock(sid)
+        stock = Stock(sid, initial_fetch=False)
         
         
         fetch_from_date = mdates.num2date(last_date) + timedelta(-10)
@@ -153,19 +153,19 @@ class stock:
 
         #return ret  # no yahoo
         #yahoo 資料確認
-        d,o,h,l,c = self.complete_data_yahoo(sid)
-        #print(d,o,h,l,c)
-        try:
-            if(mdates.date2num(d) > mdates.date2num(stock.date[-1]) and mdates.date2num(d) > last_date ):
-                str = "{0},{1},{2},{3},{4}".format(d.strftime('%Y/%m/%d'),o,h,l,c )
-                print("資料回補 yahoo：" + str)
-                f = open(self.filename, 'a+')
-                f.write(str+append_str+"\n")
-                f.close()
-                ret = True
-        except:
-            print("Error 資料回補 yahoo：" + str)
-            pass
+#        d,o,h,l,c = self.complete_data_yahoo(sid)
+#        #print(d,o,h,l,c)
+#        try:
+#            if(mdates.date2num(d) > mdates.date2num(stock.date[-1]) and mdates.date2num(d) > last_date ):
+#                str = "{0},{1},{2},{3},{4}".format(d.strftime('%Y/%m/%d'),o,h,l,c )
+#                print("資料回補 yahoo：" + str)
+#                f = open(self.filename, 'a+')
+#                f.write(str+append_str+"\n")
+#                f.close()
+#                ret = True
+#        except:
+#            print("Error 資料回補 yahoo：" + str)
+#            pass
         # 有更新資料時，回傳True
         return ret
         
@@ -198,8 +198,8 @@ class stock:
         d = self.date
         return d[n:], ma[n:]
 
-    def feature_MA_slope(self, n=10): # 均線協率
-        ret = self.feature_MA(n)
+    def feature_MA_slope(self, n=10): # 均線斜率
+        _, ret = self.feature_MA(n)
         ret[1:] = ret[1:] - ret[:-1]
         return ret[:]
 
