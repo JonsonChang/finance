@@ -6,7 +6,7 @@ import matplotlib.dates as mdates
 from twstocka import Stock
 from urllib.request import urlopen
 from lxml import etree
-#from matplotlib.finance import candlestick_ohlc
+import talib
 
 
 class stock:
@@ -168,7 +168,7 @@ class stock:
 #            pass
         # 有更新資料時，回傳True
         return ret
-        
+    
     def feature_High(self, n=5):
         high_n = []
         for i in range(0, len(self.high)):
@@ -249,13 +249,23 @@ class stock:
         result = ((c - l) / (h - l)) * 100
         return (result)
 
+    def feature_talib_FASTK(self, n=9): # RSV
+        h = np.array(self.high)
+        l = np.array(self.low)
+        c = np.array(self.close)
+        K, D = talib.STOCHF(h,l,c,fastk_period=n, fastd_period=n, fastd_matype=0)
+        return K  # RSV
+
     def feature_K(self, n=9):
         K = []
-        RSV = self.feature_RSV(n)
+     #   RSV = self.feature_RSV(n)
+        RSV = self.feature_talib_FASTK(n)
         for i in range(0, len(self.high)):
             pre_K = 50
             if(i > 0):
                 pre_K = K[i - 1]
+            if np.isnan(RSV[i]):
+                RSV[i] = 50
             current_K = pre_K * (2 / 3) + RSV[i] * (1 / 3)
             K.append(current_K)
 #            print(mdates.num2date(self.date[i]), current_K)
@@ -312,8 +322,8 @@ class stock:
     def feature_diff(self, n=1): #漲跌幅度 百分比計算
         close_n = np.roll(self.close, n)
         ret = (np.array(self.close) - close_n) / close_n
-        
         return ret		
+        
 class stock_5day(stock):
 
     def __init__(self, filename, adj_fix = False):
