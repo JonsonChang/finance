@@ -3,7 +3,7 @@ import numpy as np
 import tools
 from datetime import datetime ,timedelta
 import matplotlib.dates as mdates
-from twstocka import Stock
+from twstock import Stock
 from urllib.request import urlopen
 from lxml import etree
 import talib

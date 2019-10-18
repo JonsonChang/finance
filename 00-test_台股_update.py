@@ -5,7 +5,7 @@ import tools
 import time
 from stock import stock
 from stock import stock_5day
-from twstocka import Stock
+from twstock import Stock
 from datetime import datetime
 from pathlib import Path
 import matplotlib.pyplot as plt

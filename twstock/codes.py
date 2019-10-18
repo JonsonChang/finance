@@ -8,14 +8,30 @@
 
 import csv
 import os
+import sys
 from collections import namedtuple
 
+if hasattr(sys, '_MEIPASS'):
+# PyInstaller会创建临时文件夹temp
+# 并把路径存储在_MEIPASS中
+    #self.appPath = os.path.dirname(os.path.realpath(sys.executable))
+    PACKAGE_DIRECTORY = os.path.dirname(os.path.abspath(sys.executable))
+    TPEX_EQUITIES_CSV_PATH = os.path.join(PACKAGE_DIRECTORY, 'tpex_equities.csv')
+    TWSE_EQUITIES_CSV_PATH = os.path.join(PACKAGE_DIRECTORY, 'twse_equities.csv')
+else:
+    #self.appPath, filename = os.path.split(os.path.abspath( __file__))
+    PACKAGE_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
+    TPEX_EQUITIES_CSV_PATH = os.path.join(PACKAGE_DIRECTORY, 'codes', 'tpex_equities.csv')
+    TWSE_EQUITIES_CSV_PATH = os.path.join(PACKAGE_DIRECTORY, 'codes', 'twse_equities.csv')
 
 ROW = namedtuple('StockCodeInfo', ['type', 'code', 'name', 'ISIN', 'start',
                                    'market', 'group', 'CFI'])
-PACKAGE_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
-TPEX_EQUITIES_CSV_PATH = os.path.join(PACKAGE_DIRECTORY, 'codes', 'tpex_equities.csv')
-TWSE_EQUITIES_CSV_PATH = os.path.join(PACKAGE_DIRECTORY, 'codes', 'twse_equities.csv')
+
+
+
+
+
+
 
 codes = {}
 tpex = {}
