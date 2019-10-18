@@ -1321,4 +1321,5 @@ if __name__ == '__main__':
             #break;
     
     
-    
+    if hasattr(sys, '_MEIPASS'):
+        input("按任意鍵結束")

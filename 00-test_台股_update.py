@@ -66,4 +66,5 @@ if __name__ == '__main__':
                 time.sleep(10)
     
     
-    
+    if hasattr(sys, '_MEIPASS'):
+        input("按任意鍵結束")
