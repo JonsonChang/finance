@@ -7,11 +7,16 @@ from stock import stock_5day
 from datetime import datetime
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
-import config_stock_tw
+import commentjson
 from colorama import init, Fore, Back, Style
 init(autoreset=True)
 
-Configs = config_stock_tw.Configs
+
+#讀取設定檔
+f = open("config_stock.tw.json", "r",  encoding='UTF-8')
+Configs = commentjson.loads(f.read())
+f.close()
+
 
 def get_next_day_price(dara_list, idx):
     try:

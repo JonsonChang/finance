@@ -1,1 +1,0 @@
-awk 'BEGIN {FS=","} match($2,"^TX") {print $0}' Daily_2018_02_23.csv

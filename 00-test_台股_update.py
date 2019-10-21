@@ -10,9 +10,12 @@ from datetime import datetime
 from pathlib import Path
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
-import config_stock_tw
+import commentjson
 
-Configs = config_stock_tw.Configs
+#讀取設定檔
+f = open("config_stock.tw.json", "r",  encoding='UTF-8')
+Configs = commentjson.loads(f.read())
+f.close()
 
 def check_history_data(sid):
     my_file = Path("測試資料/台股/{0}d.csv".format(sid))
