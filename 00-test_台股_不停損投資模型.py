@@ -1,21 +1,24 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 import sys
+import os
 import tools
 from stock import stock
 from stock import stock_5day
 from datetime import datetime
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
-import commentjson
+#import commentjson  #使用pyinstall 會有file not found error
+import json
 from colorama import init, Fore, Back, Style
 init(autoreset=True)
 
-
 #讀取設定檔
-f = open("config_stock.tw.json", "r",  encoding='UTF-8')
-Configs = commentjson.loads(f.read())
+f = open('config_stock.tw.json', "r",  encoding='UTF-8')
+#Configs = commentjson.loads(f.read())
+Configs = json.loads(f.read())
 f.close()
+
 
 
 def get_next_day_price(dara_list, idx):

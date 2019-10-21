@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 import sys
+import os
 import tools
 import time
 from stock import stock
@@ -10,11 +11,13 @@ from datetime import datetime
 from pathlib import Path
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
-import commentjson
+#import commentjson  #使用pyinstall 會有file not found error
+import json
 
 #讀取設定檔
-f = open("config_stock.tw.json", "r",  encoding='UTF-8')
-Configs = commentjson.loads(f.read())
+f = open('config_stock.tw.json', "r",  encoding='UTF-8')
+#Configs = commentjson.loads(f.read())
+Configs = json.loads(f.read())
 f.close()
 
 def check_history_data(sid):
