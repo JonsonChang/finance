@@ -26,7 +26,7 @@ def check_history_data(sid):
         print("{0} history data is not exist, create it now.".format(sid))
         append_str = ",0,0"
         stock = Stock(sid, initial_fetch=False)
-        stock.fetch(2013, 1)
+        stock.fetch(2015, 1)
         for index in range(-len(stock.date),0):
             d = stock.date[index]
             o = stock.open[index]

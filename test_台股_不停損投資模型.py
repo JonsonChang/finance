@@ -17,13 +17,6 @@ init(autoreset=True)
 from pandas.plotting import register_matplotlib_converters
 register_matplotlib_converters()
 
-#讀取設定檔
-f = open('config_stock.tw.json', "r",  encoding='UTF-8')
-#Configs = commentjson.loads(f.read())
-Configs = json.loads(f.read())
-f.close()
-
-
 
 def get_next_day_price(dara_list, idx):
     try:
@@ -53,14 +46,9 @@ def buy_point_fixed_KD(ax, close, K_date, K):
 
 def get_val_by_date(d_list, val_list, d):
     if len(d_list) != len(val_list) :
-        return 99999
-    
-    # 可修改看比例，快速找出大概的位置
-    for idx, current_date in enumerate(d_list):
-        if d == current_date:
-            return val_list[idx]
-    return 9999
-
+        return np.nan
+    idx = d_list.index(d)
+    return val_list[idx]
 
 def trade_model_guava_v3(start_date_str, ax, stock_obj, K_date, K, K_UD_date, K_up, K_down): 
     print("==v3==")
@@ -1289,17 +1277,22 @@ def caculate_model(sid, nday, sid_name,start_date_str="2018/1/1",adj_fix=False):
 #    ax_list[fig_index].grid()
 #    fig_index = fig_index + 1
     
-    
-    #trade_model_guava_org(start_date_str, ax_list[0], s, s.date, k, k_date, k_up, k_down) # <= 大跌時攤平效果不好
-    #trade_model_guava_v1(start_date_str, ax_list[0], s, s.date, k, k_date, k_up, k_down)# <= 大跌時攤平效果不好
-    #trade_model_guava_v2(start_date_str, ax_list[0], s, s.date, k, k_date, k_up, k_down)  # <= 適合, 
-    #trade_model_guava_v2_1(start_date_str, ax_list[0], s, s.date, k, k_date, k_up, k_down)  # <= 不行
-    #trade_model_guava_v2_2(start_date_str, ax_list[0], s, s.date, k, k_date, k_up, k_down, percent_date, percent_up, percent_down)  # <= 0050, 2007/9/1 , 累積 512張
-    #trade_model_guava_v2_3(start_date_str, ax_list[0], s, s.date, k, k_date, k_up, k_down, percent_date, percent_up, percent_down)  # <= 最適合
-    #trade_model_guava_v2_4(start_date_str, ax_list[0], s, s.date, k, k_date, k_up, k_down, percent_date, percent_up, percent_down)  # <= 最適合, 金字塔出場
-    trade_model_guava_v2_5(start_date_str, ax_list[0], s, s.date, k, k_date, k_up, k_down, percent_date, percent_up, percent_down)  # <= 最適合, 金字塔出場, 第二天開盤價買入
-    #trade_model_guava_v3(start_date_str, ax_list[0], s, s.date, k, k_date, k_up, k_down) # <= 資金壓力太大
-    
+    try:
+        #trade_model_guava_org(start_date_str, ax_list[0], s, s.date, k, k_date, k_up, k_down) # <= 大跌時攤平效果不好
+        #trade_model_guava_v1(start_date_str, ax_list[0], s, s.date, k, k_date, k_up, k_down)# <= 大跌時攤平效果不好
+        #trade_model_guava_v2(start_date_str, ax_list[0], s, s.date, k, k_date, k_up, k_down)  # <= 適合, 
+        #trade_model_guava_v2_1(start_date_str, ax_list[0], s, s.date, k, k_date, k_up, k_down)  # <= 不行
+        #trade_model_guava_v2_2(start_date_str, ax_list[0], s, s.date, k, k_date, k_up, k_down, percent_date, percent_up, percent_down)  # <= 0050, 2007/9/1 , 累積 512張
+        #trade_model_guava_v2_3(start_date_str, ax_list[0], s, s.date, k, k_date, k_up, k_down, percent_date, percent_up, percent_down)  # <= 最適合
+        #trade_model_guava_v2_4(start_date_str, ax_list[0], s, s.date, k, k_date, k_up, k_down, percent_date, percent_up, percent_down)  # <= 最適合, 金字塔出場
+        trade_model_guava_v2_5(start_date_str, ax_list[0], s, s.date, k, k_date, k_up, k_down, percent_date, percent_up, percent_down)  # <= 最適合, 金字塔出場, 第二天開盤價買入
+        #trade_model_guava_v3(start_date_str, ax_list[0], s, s.date, k, k_date, k_up, k_down) # <= 資金壓力太大
+    except UnboundLocalError as e:
+        date_str = mdates.num2date(s.date[-1]).strftime("%Y/%m/%d")
+        print("請確認測試開始的日期。\r\n測試開始的日期，必需在股價數據的最後一日之前")
+        print("股價數據的最後一日:", date_str)
+        print("測試開始日期:      ", start_date_str)
+
     plt.tight_layout()
 #    plt.show()
 #    plt.savefig('out/{0}-{2}-{1}.png'.format(sid, datetime.now().strftime("%m-%d"),sid_name), dpi=199) # 不顯示存圖
@@ -1314,6 +1307,13 @@ def get_nday(sid):
 
     
 if __name__ == '__main__':
+
+    #讀取設定檔
+    f = open('config_stock.tw.json', "r",  encoding='UTF-8')
+    #Configs = commentjson.loads(f.read())
+    Configs = json.loads(f.read())
+    f.close()
+
     
     if len(sys.argv) > 1:
         sid = sys.argv[1]
