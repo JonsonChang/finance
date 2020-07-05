@@ -3,7 +3,7 @@
 - 依不停損投資模型計算出當日關鍵參數，並顯示投資操作方法。
 - 本程式並無自動下單功能，請到進出場指示時，請在第二天開盤時自行下單。
 - 不停損投資模型為一個攤平加碼的策略，在不清楚投資策略前，請勿跟著程式下單。
-- 如對你有幫助，請隨洗做公益
+- 如對你有幫助，請隨喜做公益
 
 
 ![image](https://raw.githubusercontent.com/JonsonChang/finance/master/readme_pic/Image%201.png)
