@@ -1169,6 +1169,20 @@ def caculate_model(sid, nday, sid_name,start_date_str="2018/1/1",adj_fix=False):
     fname = "測試資料/台股/{0}d.csv".format(sid)
     s = stock(fname, adj_fix)
     s5 = stock_5day(fname, adj_fix)
+    
+    
+    #開始日期要在200根k 之後，確保有足夠的數據
+    start_date =mdates.date2num(datetime.strptime(start_date_str,'%Y/%m/%d'))
+    if(len(s.date)<400):
+        print("Error: 數據量不足，請累積足夠多的歷史數據")
+        return
+    
+    if(start_date - s.date[200]) <0:
+        print("Error: 數據量不足")
+        date_str = mdates.num2date(s.date[200]).strftime("%Y/%m/%d")
+        print("請設定 {0} 以後的時間 ".format( date_str))
+        return
+    
 
     pulldown_date, pulldown = s.feature_pulldown(20*6) # 半年
     pd_date, pd_up, pd_down = tools.list_best_range(pulldown_date,pulldown, max = 0.99, min=0.4, n = 100)

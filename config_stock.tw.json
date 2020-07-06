@@ -1,23 +1,16 @@
 [
-	{
+    {
         "S_name":"台灣50",
         "sid":"0050",
 		"best_ma":31,
         "Update":"TW",
-        "test_start_date":"2018/9/1"
+        "test_start_date":"2020/7/1"
     },
-	{
+    {
         "S_name":"高股息",
         "sid":"0056",
-		"best_ma":96,
+		"best_ma":31,
         "Update":"TW",
-        "test_start_date":"2018/9/1"
-    },
-	{
-        "S_name":"中國 A50",
-        "sid":"00636",
-		"best_ma":36,
-        "Update":"TW",
-        "test_start_date":"2017/11/1"
-    }
+        "test_start_date":"2020/7/1"
+    }    
 ]
