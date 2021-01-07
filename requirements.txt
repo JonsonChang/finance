@@ -3,7 +3,7 @@ chardet==3.0.4
 cycler==0.10.0
 idna==2.7
 kiwisolver==1.0.1
-lxml==4.2.5
+lxml==4.6.2
 matplotlib==3.0.2
 multitasking==0.0.7
 numpy==1.15.4
