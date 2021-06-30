@@ -1,0 +1,118 @@
+<!DOCTYPE html><html>
+
+<head>
+  <meta charset="UTF-8">
+  <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+  <title>不停損投資模型 - 炒股賺錢勿忘本人大恩大德，炒股賠錢一律與本人無關</title>
+</head>
+
+<body style="background: #000000;">
+  <div id="app">
+    <header clss="" style="background: #6e6e6e;">
+      <ul class="nav justify-content-center">
+        <li class="nav-item ms-3" >
+        </li>
+        <li class="nav-item ms-3" >
+          <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#Modal_edit" @click="click_add_new_cfg">新增股票</button>
+        </li>
+        <li class="nav-item ms-3">
+          <button type="button" class="btn btn-primary" @click="click_update_all()">全部更新</button>
+        </li>        
+        <li class="nav-item ms-3">
+          <button type="button" class="btn btn-primary" @click="click_run_all_model()">執行全部模型</button>
+        </li>        
+      </ul>
+    </header>
+
+    <div class="">
+      <table class="table table-striped table-dark table-hover">
+        <thead>
+          <tr>
+            <th scope="col">#</th>
+            <th scope="col">名稱</th>
+            <th scope="col">股號</th>
+            <th scope="col">開始日期</th>
+            <th scope="col">市場</th>
+            <th scope="col" style="width: 350px">操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="(stock, index) in stock_cfgs">
+            <th scope="row">{{index}}</th>
+            <td>{{stock.S_name}}</td>
+            <td>{{stock.sid}}</td>
+            <td>{{stock.test_start_date}}</td>
+            <td>{{stock.Update}}</td>
+            <td>
+              <button type="button" class="btn btn-light" @click="click_edit(index)" data-bs-toggle="modal" data-bs-target="#Modal_edit">修改</button>
+              <button type="button" class="btn btn-danger" @click="click_del(index)">刪除</button>
+              <button type="button" class="btn btn-success" @click="click_update(index)">更新數據</button>
+              <button type="button" class="btn btn-success" @click="click_run_mudel(index)">執行模型</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+
+    <!-- Modal -->
+    <div class="modal fade" id="Modal_edit" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">股票/指數資訊</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+              <input type="hidden" v-model="edit_index">
+              <div class="mb-3">
+                <label for="exampleFormControlInput1" class="form-label">名稱</label>
+                <input type="input" class="form-control" id="exampleFormControlInput1" v-model="editFondData.S_name">
+              </div>
+              <div class="mb-3">
+                <label for="exampleFormControlInput1" class="form-label">股票代號</label>
+                <input type="input" class="form-control" id="exampleFormControlInput1" v-model="editFondData.sid">
+              </div>
+              <div class="mb-3">
+                <label for="exampleFormControlInput1" class="form-label">開始日期</label>
+                <input type="input" class="form-control" id="exampleFormControlInput1" v-model="editFondData.test_start_date">
+              </div>
+              <div class="mb-3">
+                <label for="exampleFormControlInput1" class="form-label">選擇市場</label>
+                  <div class="form-check">
+                    <input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault1" value="TW" v-model="editFondData.Update">
+                    <label class="form-check-label" for="flexRadioDefault1">
+                      台股
+                    </label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault2" value="yahoo" v-model="editFondData.Update">
+                    <label class="form-check-label" for="flexRadioDefault2">
+                      海外 Yahoo Finance
+                    </label>
+                  </div>
+              </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" @click="refresh">取消</button>
+            <button type="button" class="btn btn-primary" data-bs-dismiss="modal" v-if="edit_form_state === 'edit'" @click="saveCfg">儲存</button>
+            <button type="button" class="btn btn-primary" data-bs-dismiss="modal" v-if="edit_form_state === 'new'" @click="click_addnew_form">新增</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div> <!-- app div-->
+
+  
+  <!-- You can also require other files to run in this process -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="  crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+    crossorigin="anonymous"></script>
+  <script src="./renderer.js"></script>
+</body>
+
+</html>

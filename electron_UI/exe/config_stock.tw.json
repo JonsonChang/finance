@@ -1,0 +1,37 @@
+[
+    {
+        "S_name": "台灣50",
+        "sid": "0050",
+        "best_ma": 31,
+        "Update": "TW",
+        "test_start_date": "2021/1/1"
+    },
+    {
+        "S_name": "高股息",
+        "sid": "0056",
+        "best_ma": 96,
+        "Update": "TW",
+        "test_start_date": "2021/1/1"
+    },
+    {
+        "S_name": "道瓊指數",
+        "sid": "^DJI",
+        "best_ma": 31,
+        "Update": "yahoo",
+        "test_start_date": "2021/6/1"
+    },
+    {
+        "S_name": "S&P 500",
+        "sid": "SPY",
+        "best_ma": 31,
+        "Update": "yahoo",
+        "test_start_date": "2021/6/1"
+    },
+    {
+        "S_name": "那斯達克指數",
+        "sid": "^IXIC",
+        "best_ma": 31,
+        "Update": "yahoo",
+        "test_start_date": "2021/6/1"
+    }
+]

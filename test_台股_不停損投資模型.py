@@ -1325,14 +1325,20 @@ if __name__ == '__main__':
     #讀取設定檔
     f = open('config_stock.tw.json', "r",  encoding='UTF-8')
     #Configs = commentjson.loads(f.read())
-    Configs = json.loads(f.read())
-    f.close()
+    Configs = json.loads(f.read())   # 確定會照順序
+    f.close()  
 
     
-    if len(sys.argv) > 1:
-        sid = sys.argv[1]
-        nday = get_nday(sid)
-        caculate_model(sid, nday , "d",False)
+    
+    if len(sys.argv) > 1:  #傳入的第一個參數為第幾個設定檔
+        index = int(sys.argv[1])
+        config = Configs[index]
+        if config['Update'] == "yahoo":
+            adj_fix = True
+        else:
+            adj_fix = False
+        print(Fore.CYAN + Back.MAGENTA + Style.BRIGHT + " *-*-*-*-*-*-*  {0} {1} 均線：{2} *-*-*-*-*-*-*".format(config['sid'], config['S_name'],config['best_ma'] ))            
+        caculate_model(config["sid"], 35, config['S_name'],config['test_start_date'],adj_fix=adj_fix)
     else:
         for config in Configs:
             print("\r\n")

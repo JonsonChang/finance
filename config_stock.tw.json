@@ -1,16 +1,37 @@
 [
     {
         "S_name":"台灣50",
+        "sid":"^DJI",
+		"best_ma":31,
+        "Update":"yahoo",
+        "test_start_date":"2020/7/1"
+    },
+    {
+        "S_name":"fff高股息",
+        "sid":"0056",
+		"best_ma":31,
+        "Update":"TW",
+        "test_start_date":"2020/7/1"
+    },
+	    {
+        "S_name":"34台灣5033",
         "sid":"0050",
 		"best_ma":31,
         "Update":"TW",
         "test_start_date":"2020/7/1"
     },
-    {
-        "S_name":"高股息",
-        "sid":"0056",
+	    {
+        "S_name":"33台灣5022",
+        "sid":"0050",
 		"best_ma":31,
         "Update":"TW",
         "test_start_date":"2020/7/1"
-    }    
+    },
+	    {
+        "S_name":"FF台灣5011",
+        "sid":"0050",
+		"best_ma":31,
+        "Update":"TW",
+        "test_start_date":"2020/7/1"
+    }
 ]
